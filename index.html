@@ -127,6 +127,7 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
 .save-slot.empty{border-style:dashed;opacity:.5;}.save-slot.empty:hover{opacity:.8;}
 #save-ind{position:fixed;top:56px;right:8px;background:rgba(0,0,0,.9);border:1px solid #4f4;border-radius:4px;padding:4px 10px;font-size:7px;color:#4f4;z-index:50;opacity:0;transition:opacity .3s;pointer-events:none;}
 #save-ind.show{opacity:1;}
+#save-ind.synced{border-color:#4af;color:#4af;}
 #chain-btns{display:none;margin-top:8px;gap:4px;}
 #chain-btns button{background:linear-gradient(135deg,#224,#112);border:1px solid #448;color:#8af;font-family:inherit;font-size:7px;padding:6px 10px;border-radius:4px;cursor:pointer;flex:1;}
 #chain-btns button:hover{border-color:#8af;box-shadow:0 0 8px rgba(128,170,255,.2);}
@@ -1847,6 +1848,83 @@ function loop(n){
   if(G.tick%20===0){updInv();renderMM();updSpells();updQuests();updatePlayerList();}
   G.tick++;requestAnimationFrame(loop);
 }
+// ===== BACKEND API CLIENT =====
+const API_URL='https://megarealms-api.warlet-invest.workers.dev';
+let sessionToken=null;
+let lastBackendSave=0;
+const BACKEND_SAVE_INTERVAL=120000; // 2 minutes debounce for backend saves
+
+const api={
+  async request(method,path,body){
+    if(!sessionToken)return null;
+    try{
+      const opts={method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionToken}};
+      if(body)opts.body=JSON.stringify(body);
+      const res=await fetch(API_URL+path,opts);
+      if(!res.ok){
+        if(res.status===401){sessionToken=null;console.warn('Session expired');}
+        return null;
+      }
+      return await res.json();
+    }catch(e){console.warn('API request failed:',e);return null;}
+  },
+  async getNonce(wallet){
+    try{
+      const res=await fetch(API_URL+'/auth/nonce?wallet='+encodeURIComponent(wallet));
+      if(!res.ok)return null;
+      return await res.json();
+    }catch(e){console.warn('getNonce failed:',e);return null;}
+  },
+  async verifySignature(wallet,signature,nonceId){
+    try{
+      const res=await fetch(API_URL+'/auth/verify',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({wallet,signature,nonceId})
+      });
+      if(!res.ok)return null;
+      return await res.json();
+    }catch(e){console.warn('verifySignature failed:',e);return null;}
+  },
+  async listCharacters(){return await this.request('GET','/characters');},
+  async saveCharacter(charId,data){return await this.request('POST','/characters/save',{charId,data});},
+  async loadCharacter(charId){return await this.request('GET','/characters/'+charId);},
+  async deleteCharacter(charId){return await this.request('DELETE','/characters/'+charId);}
+};
+
+async function backendAuth(wallet){
+  try{
+    const nonceData=await api.getNonce(wallet);
+    if(!nonceData)return false;
+    const message='Sign in to MegaRealms\nNonce: '+nonceData.nonce;
+    const signature=await window.ethereum.request({method:'personal_sign',params:[message,wallet]});
+    const result=await api.verifySignature(wallet,signature,nonceData.nonceId);
+    if(result&&result.token){
+      sessionToken=result.token;
+      console.log('Backend auth successful');
+      return true;
+    }
+    return false;
+  }catch(e){
+    console.warn('Backend auth failed:',e);
+    return false;
+  }
+}
+
+async function backendSaveIfNeeded(charId,data){
+  if(!sessionToken)return;
+  const now=Date.now();
+  if(now-lastBackendSave<BACKEND_SAVE_INTERVAL)return;
+  lastBackendSave=now;
+  api.saveCharacter(charId,data).then(r=>{
+    if(r&&r.success){
+      const ind=document.getElementById('save-ind');
+      ind.textContent='Synced \u2601';
+      ind.classList.add('show');
+      setTimeout(()=>{ind.classList.remove('show');ind.textContent='Saving...';},2000);
+    }
+  }).catch(()=>{});
+}
+
 // ===== SAVE SYSTEM =====
 let SAVE_KEY='megarealms_save_';
 let activeSlot=0;
@@ -1904,6 +1982,8 @@ function saveGame(slot){
     if(idx>=0)list[idx]=meta;else list.push(meta);
     saveCharList(list);
     showSaveInd();
+    // Backend save (async, debounced)
+    backendSaveIfNeeded(charId,data);
   }catch(e){console.error('Save failed:',e);}
 }
 
@@ -1913,16 +1993,58 @@ function loadGame(charId){
   try{return JSON.parse(raw);}catch(e){return null;}
 }
 
+async function loadGameWithBackend(charId){
+  const localData=loadGame(charId);
+  if(!sessionToken)return localData;
+  try{
+    const result=await api.loadCharacter(charId);
+    if(result&&result.data){
+      const backendData=result.data;
+      // Use whichever has the more recent timestamp
+      if(!localData)return backendData;
+      if(backendData.ts>localData.ts){
+        // Backend is newer — also update localStorage
+        localStorage.setItem(getCharKey(charId),JSON.stringify(backendData));
+        return backendData;
+      }
+      return localData;
+    }
+  }catch(e){console.warn('Backend load failed, using local:',e);}
+  return localData;
+}
+
 function deleteSave(charId){
   localStorage.removeItem(getCharKey(charId));
   const list=getCharList().filter(c=>c.id!==charId);
   saveCharList(list);
+  // Also delete from backend (async, non-blocking)
+  if(sessionToken)api.deleteCharacter(charId).catch(()=>{});
   renderSaveSlots();
 }
 
 function getSaves(){
   const list=getCharList();
   return list.sort((a,b)=>b.lv-a.lv||b.ts-a.ts);
+}
+
+function mergeBackendCharList(backendChars){
+  // Merge backend character metadata with local list
+  if(!backendChars||!backendChars.length)return;
+  const localList=getCharList();
+  let changed=false;
+  for(const bc of backendChars){
+    const localIdx=localList.findIndex(c=>c.id===bc.id);
+    if(localIdx<0){
+      // Character exists on backend but not locally — add to local list
+      localList.push({id:bc.id,name:bc.name,voc:bc.voc,lv:bc.lv,gold:bc.gold,ts:bc.ts});
+      changed=true;
+    }else if(bc.ts>localList[localIdx].ts){
+      // Backend version is newer — update local metadata
+      localList[localIdx]={id:bc.id,name:bc.name,voc:bc.voc,lv:bc.lv,gold:bc.gold,ts:bc.ts};
+      changed=true;
+    }
+  }
+  if(changed)saveCharList(localList);
 }
 
 function migrateOldSaves(){
@@ -1949,6 +2071,8 @@ function migrateOldSaves(){
 
 function showSaveInd(){
   const ind=document.getElementById('save-ind');
+  ind.textContent=sessionToken?'Saved \uD83D\uDCBE':'Saved';
+  ind.classList.remove('synced');
   ind.classList.add('show');
   setTimeout(()=>ind.classList.remove('show'),1500);
 }
@@ -2029,8 +2153,10 @@ function renderSaveSlots(){
     const charId=c.id;
     del.addEventListener('click',e=>{e.stopPropagation();if(confirm('Delete character '+c.name+'?'))deleteSave(charId);});
     div.appendChild(del);
-    div.addEventListener('click',()=>{
-      const data=loadGame(charId);
+    div.addEventListener('click',async()=>{
+      div.style.opacity='0.5';div.style.pointerEvents='none';
+      const data=sessionToken?await loadGameWithBackend(charId):loadGame(charId);
+      div.style.opacity='1';div.style.pointerEvents='';
       if(data){data._charId=charId;initFromSave(data);}
     });
     cont.appendChild(div);
@@ -2071,18 +2197,35 @@ async function loginWithWallet(){
     return null;
   }
   try{
-    document.getElementById('login-status').innerHTML='<span style="color:#f0c040;">Connecting...</span>';
+    document.getElementById('login-status').innerHTML='<span style="color:#f0c040;">Connecting wallet...</span>';
     const accs=await window.ethereum.request({method:'eth_requestAccounts'});
     walletAddr=accs[0];
     SAVE_KEY=getSaveKeyForWallet(walletAddr);
     migrateOldSaves();
+    // Backend auth (sign message for persistent saves)
+    document.getElementById('login-status').innerHTML='<span style="color:#f0c040;">Signing in to backend...</span>';
+    const authOk=await backendAuth(walletAddr);
+    if(authOk){
+      document.getElementById('login-status').innerHTML='<span style="color:#4f4;">Backend connected!</span>';
+    }else{
+      document.getElementById('login-status').innerHTML='<span style="color:#fa3;">Offline mode — saves are local only</span>';
+    }
     document.getElementById('login-screen').style.display='none';
     document.getElementById('start-screen').style.display='block';
     const wbtn=document.getElementById('wbtn');
     const shortAddr=walletAddr.slice(0,6)+'...'+walletAddr.slice(-4);
     wbtn.textContent=shortAddr;
-    wbtn.style.borderColor='#4f4';
-    document.getElementById('wallet-info').innerHTML='Connected: <b style="color:#f0c040;">'+shortAddr+'</b>';
+    wbtn.style.borderColor=authOk?'#4f4':'#fa3';
+    document.getElementById('wallet-info').innerHTML='Connected: <b style="color:#f0c040;">'+shortAddr+'</b>'+(authOk?' <span style="color:#4f4;font-size:6px;">\u2601 Synced</span>':' <span style="color:#fa3;font-size:6px;">Local only</span>');
+    // Load character list from backend if authenticated
+    if(sessionToken){
+      try{
+        const backendChars=await api.listCharacters();
+        if(backendChars&&backendChars.characters){
+          mergeBackendCharList(backendChars.characters);
+        }
+      }catch(e){}
+    }
     renderSaveSlots();
     return walletAddr;
   }catch(e){
@@ -2137,7 +2280,21 @@ function initGame(name,voc){
   msg('Blue NPCs=shop | Orange=quest | White=heal','system');
   msg('Enter=chat | Right-click=sell item','system');
   requestAnimationFrame(loop);
-  setTimeout(()=>saveGame(G.player._charId),2000);
+  setTimeout(()=>{
+    saveGame(G.player._charId);
+    // Force immediate backend save for new characters
+    if(sessionToken){lastBackendSave=0;backendSaveIfNeeded(G.player._charId,{
+      v:3,ts:Date.now(),charId:G.player._charId,name:G.player.name,voc:G.player.voc,
+      lv:G.player.lv,xp:G.player.xp,hp:Math.floor(G.player.hp),mhp:G.player.mhp,
+      mp:Math.floor(G.player.mp),mmp:G.player.mmp,batk:G.player.batk,bdef:G.player.bdef,
+      gold:G.player.gold,x:G.player.x,y:G.player.y,dir:G.player.dir,floor:G.floor,
+      inv:G.player.inv,eq:G.player.eq,skills:G.player.skills,skillXp:G.player.skillXp,
+      quests:G.quests.map(q=>({id:q.id,progress:q.progress,done:q.done})),
+      kills:G.kills,spells:G.player.spells,_ck:_hash(G.player.name+G.player.voc+G.player.lv),
+      premium:G.player.premium||{active:false,expiry:0,addr:''},
+      blessings:G.player.blessings||[],softBootCharges:G.player.softBootCharges||0
+    });}
+  },2000);
 }
 
 // ===== HOTKEY CONFIG =====

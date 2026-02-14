@@ -90,7 +90,7 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
 #tgt .tn{font-size:8px;color:#f66;margin-bottom:4px;text-shadow:0 0 4px rgba(255,60,60,.4);}
 #tgt .tb{width:130px;height:8px;background:#200;border:1px solid #533;border-radius:3px;overflow:hidden;}
 #tgt .tf{height:100%;background:linear-gradient(90deg,#e33,#f66);transition:width .2s;box-shadow:0 0 4px rgba(255,60,60,.4);}
-#mm-wrap{display:block;position:fixed;top:56px;right:220px;z-index:50;}
+#mm-wrap{display:none;position:fixed;top:56px;right:220px;z-index:50;}
 #mm{border:2px solid #c9a959;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,.6);display:block;}
 #mm-zoom{position:absolute;top:4px;left:4px;display:flex;flex-direction:column;gap:2px;z-index:51;}
 #mm-zoom button{width:20px;height:20px;background:rgba(0,0,0,.75);border:1px solid #c9a959;border-radius:3px;color:#f0c040;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;padding:0;line-height:1;}
@@ -167,23 +167,99 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
 #ctx-menu .ctx-opt .ctx-icon{font-size:10px;min-width:14px;text-align:center;}
 #ctx-menu .ctx-sep{height:1px;background:#333;margin:2px 0;}
 #ctx-menu .ctx-opt.danger{color:#f66;}#ctx-menu .ctx-opt.danger:hover{background:rgba(255,60,60,.15);color:#f44;}
+#terms-screen{text-align:center;padding:30px;max-width:600px;overflow-y:auto;max-height:90vh;}
+#terms-screen h1{font-size:22px;color:#f0c040;text-shadow:2px 2px #000,0 0 20px rgba(240,192,64,.3);margin-bottom:6px;}
+#terms-screen .sub{font-size:8px;color:#888;margin-bottom:16px;}
+#terms-screen .terms-box{text-align:left;background:rgba(0,0,0,.4);border:1px solid #333;border-radius:6px;padding:14px;margin:10px 0;max-height:320px;overflow-y:auto;font-size:7px;color:#aaa;line-height:2;}
+#terms-screen .terms-box h2{font-size:9px;color:#f0c040;margin:10px 0 6px;}
+#terms-screen .terms-box h2:first-child{margin-top:0;}
+#terms-screen .terms-box p{margin-bottom:6px;}
+#terms-screen .terms-box ul{margin:4px 0 8px 16px;list-style:disc;}
+#terms-screen .terms-box li{margin-bottom:3px;}
+.chk-agree{display:flex;align-items:center;gap:8px;justify-content:center;margin:12px 0;font-size:7px;color:#ccc;cursor:pointer;}
+.chk-agree input{width:16px;height:16px;cursor:pointer;accent-color:#f0c040;}
+#btn-agree{background:linear-gradient(135deg,#f0c040,#c49a20);color:#111;border:2px solid #e0b030;padding:12px 36px;font-family:inherit;font-size:11px;border-radius:6px;cursor:pointer;box-shadow:0 4px 16px rgba(240,192,64,.3);transition:.2s;text-shadow:0 1px 0 rgba(255,255,255,.2);}
+#btn-agree:hover:not(:disabled){box-shadow:0 4px 24px rgba(240,192,64,.5);transform:translateY(-1px);}
+#btn-agree:disabled{opacity:0.3;cursor:default;}
+#login-screen{display:none;text-align:center;padding:40px;max-width:500px;}
+#login-screen h1{font-size:24px;color:#f0c040;text-shadow:2px 2px #000,0 0 20px rgba(240,192,64,.3);margin-bottom:6px;}
+#login-screen .sub{font-size:8px;color:#888;margin-bottom:24px;}
+.wallet-btn{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1a1a3e,#0e0e2e);border:2px solid #3a3060;border-radius:8px;padding:14px 20px;margin:8px auto;cursor:pointer;transition:.2s;width:100%;max-width:360px;}
+.wallet-btn:hover{border-color:#f0c040;box-shadow:0 0 16px rgba(240,192,64,.15);}
+.wallet-btn .wb-icon{font-size:24px;}.wallet-btn .wb-name{font-size:10px;color:#f0c040;}.wallet-btn .wb-desc{font-size:6px;color:#777;margin-top:2px;}
+#login-status{font-size:7px;color:#888;margin-top:16px;min-height:20px;}
 </style>
 </head>
 <body>
-<div id="start-screen">
+<div id="terms-screen">
   <h1>MegaRealms</h1>
   <p class="sub">On-Chain MMORPG on MegaETH</p>
-  <div class="tab-bar">
-    <button class="tab-btn active" id="tb-load">Continue</button>
-    <button class="tab-btn" id="tb-new">New Character</button>
+  <div class="terms-box">
+    <h2>Welcome to MegaRealms Beta</h2>
+    <p>This project is currently in <b style="color:#f80;">BETA</b> and under active development. By proceeding, you acknowledge and accept the following terms:</p>
+    <h2>Risk Disclosure</h2>
+    <ul>
+      <li>This is an experimental project in beta phase. Bugs, instabilities and data loss may occur at any time.</li>
+      <li>There is no guarantee of continuous operation, stability or preservation of game progress.</li>
+      <li>The project may be discontinued, significantly changed or reset (wiped) without prior notice.</li>
+      <li>Any blockchain interaction is entirely at your own risk. On-chain transactions are irreversible.</li>
+      <li>We are not responsible for financial losses, loss of tokens, NFTs or any digital assets.</li>
+    </ul>
+    <h2>Disclaimer</h2>
+    <ul>
+      <li>The game is provided "as is", without warranties of any kind, express or implied.</li>
+      <li>The developers shall not be liable for any direct, indirect, incidental or consequential damages arising from use.</li>
+      <li>You are solely responsible for the security of your crypto wallet and private keys.</li>
+      <li>We do not provide financial advice. No element of the game constitutes an investment offer.</li>
+    </ul>
+    <h2>Terms of Use</h2>
+    <ul>
+      <li>The use of hacks, bots, exploits or any tool that alters the game's functionality is prohibited.</li>
+      <li>We reserve the right to ban accounts that violate these terms.</li>
+      <li>Your game data is stored locally in the browser and linked to your wallet address.</li>
+      <li>By connecting your wallet, you confirm that you are the rightful owner of the address.</li>
+      <li>These terms may be updated at any time. Continued use implies acceptance.</li>
+    </ul>
+    <h2>Data Protection</h2>
+    <p>We only collect your wallet's public address for character linking. We do not collect personal data, passwords or private keys.</p>
   </div>
-  <div id="tab-load" class="active">
-    <div id="save-slots"></div>
-    <div id="chain-btns">
-      <button id="btn-chain-load">&#9939; Load from Blockchain</button>
+  <label class="chk-agree"><input type="checkbox" id="chk-terms"> I have read and agree to the terms above and acknowledge the risks</label>
+  <button id="btn-agree" disabled>Continue</button>
+</div>
+<div id="login-screen">
+  <h1>MegaRealms</h1>
+  <p class="sub">Connect your wallet to play</p>
+  <div class="wallet-btn" id="btn-metamask">
+    <span class="wb-icon">🦊</span>
+    <div><div class="wb-name">MetaMask</div><div class="wb-desc">Most popular Web3 wallet</div></div>
+  </div>
+  <div class="wallet-btn" id="btn-rabby">
+    <span class="wb-icon">🐰</span>
+    <div><div class="wb-name">Rabby Wallet</div><div class="wb-desc">Secure multi-chain wallet</div></div>
+  </div>
+  <div class="wallet-btn" id="btn-walletconnect">
+    <span class="wb-icon">🔗</span>
+    <div><div class="wb-name">Other Wallet</div><div class="wb-desc">Any EVM-compatible wallet</div></div>
+  </div>
+  <div id="login-status"></div>
+  <div style="margin-top:20px;border-top:1px solid #333;padding-top:14px;">
+    <div class="wallet-btn" id="btn-skip-wallet" style="border-color:#633;opacity:.7;">
+      <span class="wb-icon">🛠</span>
+      <div><div class="wb-name" style="color:#f66;">Skip (Dev Mode)</div><div class="wb-desc">Continue without wallet — testing only</div></div>
     </div>
   </div>
-  <div id="tab-new">
+</div>
+<div id="start-screen" style="display:none;">
+  <h1>MegaRealms</h1>
+  <p class="sub">On-Chain MMORPG on MegaETH</p>
+  <div id="wallet-info" style="font-size:6px;color:#4f4;margin-bottom:12px;"></div>
+  <div id="char-list-view">
+    <div style="font-size:9px;color:#c9a959;margin-bottom:10px;">Your Characters</div>
+    <div id="save-slots" style="max-height:320px;overflow-y:auto;margin-bottom:10px;"></div>
+    <button class="btn-go" id="btn-new-char" style="font-size:9px;padding:10px 24px;width:100%;background:linear-gradient(135deg,#224,#112);color:#8af;border:2px solid #448;">+ New Character</button>
+  </div>
+  <div id="tab-new" style="display:none;">
+    <button id="btn-back-list" style="background:none;border:1px solid #555;color:#aaa;font-family:inherit;font-size:7px;padding:4px 12px;border-radius:3px;cursor:pointer;margin-bottom:12px;">&#9664; Back</button>
     <label>Character Name</label>
     <input type="text" id="cn" placeholder="Enter your name..." maxlength="16">
     <label>Vocation</label>
@@ -824,7 +900,7 @@ class Mon{
       this.la=n;let dmg=Math.floor(M.atk-p.def/2);dmg=Math.max(1,dmg+Math.floor(Math.random()*3-1));
       p.hp-=dmg;floatText(p.x,p.y,'-'+dmg,'#f44');
       if(p.hp<=0){p.hp=0;const bc=p.blessings?p.blessings.length:0;const xl=bc>=5?'2%':bc>=3?'5%':'10%';const dm=document.getElementById('death-msg');if(dm){let dt='Lost '+xl+' of XP.';if(bc===0)dt+=' Without blessings, you will lose an equipped item!';dm.textContent=dt;}document.getElementById('death-ov').style.display='flex';}
-      p.skillXp.shielding+=1;if(p.skillXp.shielding>=p.skills.shielding*5){p.skillXp.shielding=0;p.skills.shielding++;msg(`Shielding subiu para ${p.skills.shielding}!`,'level');}
+      p.skillXp.shielding+=1;if(p.skillXp.shielding>=p.skills.shielding*5){p.skillXp.shielding=0;p.skills.shielding++;msg(`Shielding increased to ${p.skills.shielding}!`,'level');}
     }else if(dist<=10&&n-this.lm>M.spd){
       this.lm=n;
       let mx=0,my=0,moved=false;
@@ -931,7 +1007,7 @@ function atkTgt(){
   let dmg=Math.floor((ww&&ww.matk?p.matk:p.atk)-M.def/2);
   dmg=Math.max(1,dmg+Math.floor(Math.random()*dmg*0.2-dmg*0.1));
   m.hp-=dmg;floatText(m.x,m.y,'-'+dmg,'#ff4');
-  const sk=ww?ww.sk:'melee';if(sk&&p.skills[sk]!==undefined){p.skillXp[sk]+=1;if(p.skillXp[sk]>=p.skills[sk]*5){p.skillXp[sk]=0;p.skills[sk]++;msg(`${sk} subiu para ${p.skills[sk]}!`,'level');}}
+  const sk=ww?ww.sk:'melee';if(sk&&p.skills[sk]!==undefined){p.skillXp[sk]+=1;if(p.skillXp[sk]>=p.skills[sk]*5){p.skillXp[sk]=0;p.skills[sk]++;msg(`${sk} increased to ${p.skills[sk]}!`,'level');}}
   if(m.hp<=0){m.alive=false;m.rt=performance.now()+m.respawnTime();
     p.xp+=M.xp;msg(`${M.n} derrotado! +${M.xp} XP`,'combat');
     p.lvUp();dropLoot(m);G.kills[m.t]=(G.kills[m.t]||0)+1;checkQuests();
@@ -946,7 +1022,7 @@ function dropLoot(m){
 
 function pickup(){
   const p=G.player;const b=G.bags.find(l=>l.x===p.x&&l.y===p.y);if(!b)return;
-  b.items.forEach(i=>{if(!p.addItem(i.id,i.q))msg(`Cheio! ${ITEMS[i.id].n}`,'system');else{
+  b.items.forEach(i=>{if(!p.addItem(i.id,i.q))msg(`Full! ${ITEMS[i.id].n}`,'system');else{
     msg(`+${i.q} ${ITEMS[i.id].n}`,'loot');
     G.quests.forEach(q=>{if(q.type==='collect'&&q.target===i.id)checkQuests();});
   }});G.bags=G.bags.filter(l=>l!==b);
@@ -969,7 +1045,7 @@ function castSpell(idx){
     if(dx+dy<=rng){
       let dmg=Math.floor((p.matk||p.atk)*sp.dmg);dmg=Math.max(1,Math.floor(dmg-M.def/3));
       G.target.hp-=dmg;floatText(G.target.x,G.target.y,'-'+dmg,'#f8f');msg(`${sp.n}: -${dmg}`,'spell');
-      p.skillXp.magic+=2;if(p.skillXp.magic>=p.skills.magic*5){p.skillXp.magic=0;p.skills.magic++;msg(`Magic subiu para ${p.skills.magic}!`,'level');}
+      p.skillXp.magic+=2;if(p.skillXp.magic>=p.skills.magic*5){p.skillXp.magic=0;p.skills.magic++;msg(`Magic increased to ${p.skills.magic}!`,'level');}
       if(G.target.hp<=0){G.target.alive=false;G.target.rt=performance.now()+G.target.respawnTime();
         const premXp=isPrem()?Math.floor(M.xp*1.15):M.xp;p.xp+=premXp;msg(`${M.n} derrotado! +${M.xp} XP`,'combat');p.lvUp();dropLoot(G.target);G.kills[G.target.t]=(G.kills[G.target.t]||0)+1;checkQuests();}
     }else msg('Too far!','system');
@@ -1012,7 +1088,7 @@ function acceptQuest(qid){
   if(!qd||G.quests.find(q=>q.id===qid))return;
   if(G.player.lv<qd.lvl){msg(`Precisa level ${qd.lvl}!`,'system');return;}
   G.quests.push({...qd,progress:0,done:false});
-  msg(`Quest aceita: ${qd.n}`,'quest');updQuests();
+  msg(`Quest accepted: ${qd.n}`,'quest');updQuests();
 }
 
 // SHOP SYSTEM
@@ -1072,30 +1148,45 @@ function getDjinnPrice(itemId){
 }
 function openDjinnShop(){
   const p=G.player;
-  let html='<div style="padding:12px;max-height:320px;overflow-y:auto;">';
+  let html='<div style="padding:12px;max-height:400px;overflow-y:auto;">';
   html+='<div style="font-size:9px;color:#4af;margin-bottom:8px;text-align:center;">Blue Djinn - Item Buyer</div>';
   html+='<div style="font-size:6px;color:#aaa;margin-bottom:8px;text-align:center;">Equipment: 30% value | Loot: special prices</div>';
   let hasItems=false;
+  let sellableItems=[];
   for(let i=0;i<30;i++){
     const it=p.inv[i];if(!it)continue;
     const dd=ITEMS[it.id];if(!dd)continue;
     const price=getDjinnPrice(it.id);
     if(price<=0)continue;
     hasItems=true;
-    const totalPrice=price*it.q;
-    html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;margin:2px 0;background:rgba(64,128,255,0.1);border:1px solid rgba(64,128,255,0.3);border-radius:4px;cursor:pointer;" ';
-    html+='onclick="djinnSell('+i+',1)" oncontextmenu="event.preventDefault();djinnSell('+i+','+it.q+')">';
-    html+='<span style="font-size:8px;">'+dd.i+' '+dd.n+(it.q>1?' x'+it.q:'')+'</span>';
-    html+='<span style="font-size:7px;color:#f0c040;">'+price+'g'+(it.q>1?' ('+totalPrice+'g all)':'')+'</span>';
+    sellableItems.push({idx:i,item:it,def:dd,price:price});
+  }
+  if(hasItems&&sellableItems.length>1){
+    let totalAll=0;
+    sellableItems.forEach(s=>{totalAll+=s.price*s.item.q;});
+    html+='<div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:6px;margin-bottom:6px;background:rgba(240,192,64,0.15);border:2px solid rgba(240,192,64,0.4);border-radius:6px;cursor:pointer;" onclick="djinnSellAll()">';
+    html+='<span style="font-size:9px;">💰</span>';
+    html+='<span style="font-size:8px;color:#f0c040;font-weight:bold;">Sell All - '+totalAll+'g</span>';
     html+='</div>';
   }
+  for(const s of sellableItems){
+    const totalPrice=s.price*s.item.q;
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;margin:2px 0;background:rgba(64,128,255,0.1);border:1px solid rgba(64,128,255,0.3);border-radius:4px;gap:4px;">';
+    html+='<span style="font-size:8px;flex:1;">'+s.def.i+' '+s.def.n+(s.item.q>1?' x'+s.item.q:'')+'</span>';
+    html+='<span style="font-size:6px;color:#f0c040;white-space:nowrap;">'+s.price+'g ea</span>';
+    html+='<div style="display:flex;gap:2px;">';
+    html+='<button onclick="djinnSell('+s.idx+',1)" style="background:#224;border:1px solid #448;color:#8af;font-family:inherit;font-size:6px;padding:3px 6px;border-radius:3px;cursor:pointer;" title="Sell 1">x1</button>';
+    if(s.item.q>=5)html+='<button onclick="djinnSell('+s.idx+',5)" style="background:#224;border:1px solid #448;color:#8af;font-family:inherit;font-size:6px;padding:3px 6px;border-radius:3px;cursor:pointer;" title="Sell 5">x5</button>';
+    if(s.item.q>=10)html+='<button onclick="djinnSell('+s.idx+',10)" style="background:#224;border:1px solid #448;color:#8af;font-family:inherit;font-size:6px;padding:3px 6px;border-radius:3px;cursor:pointer;" title="Sell 10">x10</button>';
+    if(s.item.q>1)html+='<button onclick="djinnSell('+s.idx+','+s.item.q+')" style="background:#432;border:1px solid #f0c040;color:#f0c040;font-family:inherit;font-size:6px;padding:3px 6px;border-radius:3px;cursor:pointer;" title="Sell all">ALL</button>';
+    html+='</div></div>';
+  }
   if(!hasItems)html+='<div style="font-size:7px;color:#888;text-align:center;padding:20px;">No sellable items in inventory.</div>';
-  html+='<div style="font-size:5px;color:#666;margin-top:8px;text-align:center;">Left click: sell 1 | Right click: sell all</div>';
   html+='<div style="text-align:center;margin-top:8px;"><button onclick="closeDjinnShop()" style="background:#333;color:#fff;border:1px solid #666;padding:4px 16px;font-family:inherit;font-size:7px;border-radius:4px;cursor:pointer;">Close</button></div>';
   html+='</div>';
   let ov=document.getElementById('djinn-ov');
   if(!ov){ov=document.createElement('div');ov.id='djinn-ov';ov.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,40,0.8);display:flex;align-items:center;justify-content:center;z-index:200;';document.body.appendChild(ov);}
-  ov.innerHTML='<div style="background:linear-gradient(180deg,#1a1a3e,#0e0e2e);border:2px solid #4af;border-radius:8px;min-width:280px;max-width:350px;box-shadow:0 0 30px rgba(64,128,255,0.4);">'+html+'</div>';
+  ov.innerHTML='<div style="background:linear-gradient(180deg,#1a1a3e,#0e0e2e);border:2px solid #4af;border-radius:8px;min-width:300px;max-width:380px;box-shadow:0 0 30px rgba(64,128,255,0.4);">'+html+'</div>';
   ov.style.display='flex';
 }
 function djinnSell(idx,qty){
@@ -1111,6 +1202,26 @@ function djinnSell(idx,qty){
   openDjinnShop();
 }
 function closeDjinnShop(){const ov=document.getElementById('djinn-ov');if(ov)ov.style.display='none';}
+function djinnSellAll(){
+  const p=G.player;let totalGold=0;let totalItems=0;
+  const toSell=[];
+  for(let i=29;i>=0;i--){
+    const it=p.inv[i];if(!it)continue;
+    const price=getDjinnPrice(it.id);if(price<=0)continue;
+    toSell.push({idx:i,qty:it.q,price:price*it.q,name:ITEMS[it.id].n});
+  }
+  for(const s of toSell){
+    if(p.gold+totalGold+s.price>99999999)break;
+    totalGold+=s.price;totalItems+=s.qty;
+    p.rmItem(s.idx,s.qty);
+  }
+  if(totalGold>0){
+    p.gold+=totalGold;
+    msg('Sold '+totalItems+' items for '+totalGold+'g to Blue Djinn','loot');
+    updInv();triggerSave();
+  }
+  openDjinnShop();
+}
 function switchFloor(newFloor,px,py){if(!G._floorCd){G._floorCd=0;}if(Date.now()-G._floorCd<3000){return;}G._floorCd=Date.now();G._zoneCache=null;G._zoneCacheFloor=-1;if((newFloor>=7)&&!isPrem()){msg('Premium Account required to access this area!','system');return;}
   const oldFloor=G.floor;const dir=newFloor>oldFloor?'Descendo...':'Subindo...';
   const fi=FLOOR_INFO[newFloor];
@@ -1431,37 +1542,37 @@ function ctxInvItem(idx,e){
   const p=G.player;const it=p.inv[idx];if(!it)return;
   const dd=ITEMS[it.id];
   const opts=[];
-  if(dd.s){opts.push({icon:'\u2694',label:'Equipar',fn:()=>{const old=p.eq[dd.s];p.eq[dd.s]=it.id;p.inv.splice(idx,1);if(old)p.addItem(old);msg('Equipou '+dd.n,'system');updInv();triggerSave();}});}
+  if(dd.s){opts.push({icon:'\u2694',label:'Equip',fn:()=>{const old=p.eq[dd.s];p.eq[dd.s]=it.id;p.inv.splice(idx,1);if(old)p.addItem(old);msg('Equipped '+dd.n,'system');updInv();triggerSave();}});}
   if(dd.t==='potion'||dd.t==='food'){
     const canUse=!dd.vocs||dd.vocs.includes(p.voc);
     const vocTag=dd.vocs?' ['+dd.vocs.join('/')+']':'';
-    if(!canUse){opts.push({icon:'\u26D4',label:'Restrito'+vocTag,cls:'danger',fn:()=>{msg('Sua vocacao nao pode usar '+dd.n+'!','system');}});}
+    if(!canUse){opts.push({icon:'\u26D4',label:'Restricted'+vocTag,cls:'danger',fn:()=>{msg('Your vocation cannot use '+dd.n+'!','system');}});}
     else{
-      if(dd.heal)opts.push({icon:'\u2764',label:'Usar (HP+'+(dd.heal)+')',fn:()=>{p.hp=Math.min(p.mhp,p.hp+dd.heal);floatText(p.x,p.y,'+'+dd.heal,'#4f4');if(dd.mana){p.mp=Math.min(p.mmp,p.mp+dd.mana);floatText(p.x,p.y,'+'+dd.mana,'#44f');}p.rmItem(idx);updInv();}});
-      else if(dd.mana)opts.push({icon:'\u2728',label:'Usar (MP+'+(dd.mana)+')',fn:()=>{p.mp=Math.min(p.mmp,p.mp+dd.mana);floatText(p.x,p.y,'+'+dd.mana,'#44f');p.rmItem(idx);updInv();}});
-      if(it.q>1)opts.push({icon:'\u26A1',label:'Usar Todos ('+it.q+'x)',fn:()=>{if(dd.vocs&&!dd.vocs.includes(p.voc)){msg('Sua vocacao nao pode usar '+dd.n+'!','system');return;}for(let i=0;i<it.q;i++){if(dd.heal)p.hp=Math.min(p.mhp,p.hp+dd.heal);if(dd.mana)p.mp=Math.min(p.mmp,p.mp+dd.mana);}floatText(p.x,p.y,'Full!','#4f4');p.rmItem(idx,it.q);updInv();}});
+      if(dd.heal)opts.push({icon:'\u2764',label:'Use (HP+'+(dd.heal)+')',fn:()=>{p.hp=Math.min(p.mhp,p.hp+dd.heal);floatText(p.x,p.y,'+'+dd.heal,'#4f4');if(dd.mana){p.mp=Math.min(p.mmp,p.mp+dd.mana);floatText(p.x,p.y,'+'+dd.mana,'#44f');}p.rmItem(idx);updInv();}});
+      else if(dd.mana)opts.push({icon:'\u2728',label:'Use (MP+'+(dd.mana)+')',fn:()=>{p.mp=Math.min(p.mmp,p.mp+dd.mana);floatText(p.x,p.y,'+'+dd.mana,'#44f');p.rmItem(idx);updInv();}});
+      if(it.q>1)opts.push({icon:'\u26A1',label:'Use All ('+it.q+'x)',fn:()=>{if(dd.vocs&&!dd.vocs.includes(p.voc)){msg('Your vocation cannot use '+dd.n+'!','system');return;}for(let i=0;i<it.q;i++){if(dd.heal)p.hp=Math.min(p.mhp,p.hp+dd.heal);if(dd.mana)p.mp=Math.min(p.mmp,p.mp+dd.mana);}floatText(p.x,p.y,'Full!','#4f4');p.rmItem(idx,it.q);updInv();}});
     }
   }
-  if(G.shop){opts.push({sep:true});opts.push({icon:'\uD83D\uDCB0',label:'Vender ('+Math.floor(dd.p/3)+'g)',fn:()=>{sellItem(idx);}});}
+  if(G.shop){opts.push({sep:true});opts.push({icon:'\uD83D\uDCB0',label:'Sell ('+Math.floor(dd.p/3)+'g)',fn:()=>{sellItem(idx);}});}
   if(it.q>1){
     opts.push({sep:true});
-    opts.push({icon:'\uD83D\uDCE6',label:'Separar Stack (metade)',fn:()=>{const half=Math.floor(it.q/2);if(half<1)return;it.q-=half;if(!p.addItem(it.id,half)){it.q+=half;msg('Inventario cheio!','system');}updInv();}});
+    opts.push({icon:'\uD83D\uDCE6',label:'Split Stack (half)',fn:()=>{const half=Math.floor(it.q/2);if(half<1)return;it.q-=half;if(!p.addItem(it.id,half)){it.q+=half;msg('Inventory full!','system');}updInv();}});
   }
   opts.push({sep:true});
   opts.push({icon:'\u2139',label:'Info: '+dd.n,fn:()=>{
     let info=dd.n+' | '+dd.d;
     if(dd.atk)info+=' | ATK:'+dd.atk;if(dd.matk)info+=' | MATK:'+dd.matk;if(dd.def)info+=' | DEF:'+dd.def;
-    if(dd.heal)info+=' | Cura:'+dd.heal;if(dd.mana)info+=' | Mana:'+dd.mana;
+    if(dd.heal)info+=' | Heal:'+dd.heal;if(dd.mana)info+=' | Mana:'+dd.mana;
     if(dd.spd)info+=' | Speed:'+dd.spd;if(dd.premium)info+=' | PREMIUM';
-    info+=' | Valor: '+dd.p+'g | Venda: '+Math.floor(dd.p/3)+'g';
-    if(it.q>1)info+=' | Qtd: '+it.q;
+    info+=' | Value: '+dd.p+'g | Sell: '+Math.floor(dd.p/3)+'g';
+    if(it.q>1)info+=' | Qty: '+it.q;
     msg(info,'system');
   }});
   if(it.q>1){
-    opts.push({icon:'\uD83D\uDDD1',label:'Descartar 1x',danger:true,fn:()=>{p.rmItem(idx,1);msg('Descartou 1x '+dd.n,'system');updInv();triggerSave();}});
-    opts.push({icon:'\u274C',label:'Descartar Todos ('+it.q+'x)',danger:true,fn:()=>{p.rmItem(idx,it.q);msg('Descartou '+it.q+'x '+dd.n,'system');updInv();triggerSave();}});
+    opts.push({icon:'\uD83D\uDDD1',label:'Discard 1x',danger:true,fn:()=>{p.rmItem(idx,1);msg('Discarded 1x '+dd.n,'system');updInv();triggerSave();}});
+    opts.push({icon:'\u274C',label:'Discard All ('+it.q+'x)',danger:true,fn:()=>{p.rmItem(idx,it.q);msg('Discarded '+it.q+'x '+dd.n,'system');updInv();triggerSave();}});
   }else{
-    opts.push({icon:'\uD83D\uDDD1',label:'Descartar',danger:true,fn:()=>{p.rmItem(idx,1);msg('Descartou '+dd.n,'system');updInv();triggerSave();}});
+    opts.push({icon:'\uD83D\uDDD1',label:'Discard',danger:true,fn:()=>{p.rmItem(idx,1);msg('Discarded '+dd.n,'system');updInv();triggerSave();}});
   }
   showCtxMenu(e.clientX,e.clientY,dd.n+(it.q>1?' ('+it.q+'x)':''),opts);
 }
@@ -1471,7 +1582,7 @@ function ctxEqSlot(slotKey,slotLabel,e){
   const p=G.player;if(!slotKey||!p.eq[slotKey])return;
   const itemId=p.eq[slotKey];const dd=ITEMS[itemId];
   const opts=[];
-  opts.push({icon:'\u21A9',label:'Desequipar',fn:()=>{if(!p.addItem(itemId)){msg('Inventario cheio!','system');return;}p.eq[slotKey]=null;msg('Desequipou '+dd.n,'system');updInv();triggerSave();}});
+  opts.push({icon:'\u21A9',label:'Unequip',fn:()=>{if(!p.addItem(itemId)){msg('Inventory full!','system');return;}p.eq[slotKey]=null;msg('Unequipped '+dd.n,'system');updInv();triggerSave();}});
   if(itemId==='soft_boots'||itemId==='firewalker_boots'){
     const ch=p.softBootCharges||0;opts.push({icon:'\u26A1',label:'Tempo: '+Math.floor(ch*2/60)+'min/480min',fn:()=>{msg(dd.n+': '+Math.floor(ch*2/60)+' minutos restantes ('+Math.floor(ch/14400*100)+'%)','system');}});
   }
@@ -1480,7 +1591,7 @@ function ctxEqSlot(slotKey,slotLabel,e){
     let info=dd.n+' | '+dd.d;
     if(dd.atk)info+=' | ATK:'+dd.atk;if(dd.matk)info+=' | MATK:'+dd.matk;if(dd.def)info+=' | DEF:'+dd.def;
     if(dd.spd)info+=' | Speed:'+dd.spd;if(dd.premium)info+=' | PREMIUM';
-    info+=' | Valor: '+dd.p+'g';
+    info+=' | Value: '+dd.p+'g';
     msg(info,'system');
   }});
   showCtxMenu(e.clientX,e.clientY,dd.n+' ('+slotLabel+')',opts);
@@ -1503,7 +1614,7 @@ function updInv(){
     if(it){d.innerHTML=it.i+'<span class="sl">'+sl.l+'</span>';d.title=it.n+' ('+it.d+')';}
     else{d.innerHTML=(sl.icon||'')+'<span class="sl">'+sl.l+'</span>';d.title=sl.l;}
     if(sl.s){d.addEventListener('click',()=>{
-      if(p.eq[sl.s]){p.addItem(p.eq[sl.s]);p.eq[sl.s]=null;msg('Desequipou '+sl.l,'system');updInv();}
+      if(p.eq[sl.s]){p.addItem(p.eq[sl.s]);p.eq[sl.s]=null;msg('Unequipped '+sl.l,'system');updInv();}
     });d.addEventListener('contextmenu',e=>{ctxEqSlot(sl.s,sl.l,e);});}
     eg.appendChild(d);
   });
@@ -1519,7 +1630,7 @@ function updInv(){
       d.addEventListener('click',()=>{
         if(dd.s){
           const old=p.eq[dd.s];p.eq[dd.s]=it.id;p.inv.splice(idx,1);
-          if(old)p.addItem(old);msg('Equipou '+dd.n,'system');updInv();
+          if(old)p.addItem(old);msg('Equipped '+dd.n,'system');updInv();
         }else if(dd.t==='potion'||dd.t==='food'){
           if(dd.heal){p.hp=Math.min(p.mhp,p.hp+dd.heal);floatText(p.x,p.y,'+'+dd.heal,'#4f4');}
           if(dd.mana){p.mp=Math.min(p.mmp,p.mp+dd.mana);floatText(p.x,p.y,'+'+dd.mana,'#44f');}
@@ -1737,15 +1848,42 @@ function loop(n){
   G.tick++;requestAnimationFrame(loop);
 }
 // ===== SAVE SYSTEM =====
-const SAVE_KEY='megarealms_save_';
+let SAVE_KEY='megarealms_save_';
 let activeSlot=0;
 let lastAutoSave=0;
+
+function getCharListKey(){
+  if(!walletAddr)return 'megarealms_charlist';
+  return 'megarealms_'+walletAddr.toLowerCase()+'_charlist';
+}
+
+function getCharKey(charId){
+  if(!walletAddr)return 'megarealms_char_'+charId;
+  return 'megarealms_'+walletAddr.toLowerCase()+'_char_'+charId;
+}
+
+function getCharList(){
+  try{
+    const raw=localStorage.getItem(getCharListKey());
+    return raw?JSON.parse(raw):[];
+  }catch(e){return [];}
+}
+
+function saveCharList(list){
+  try{localStorage.setItem(getCharListKey(),JSON.stringify(list));}catch(e){}
+}
+
+function generateCharId(){
+  return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);
+}
 
 function saveGame(slot){
   if(!G.player)return;
   const p=G.player;
+  const charId=typeof slot==='string'?slot:p._charId;
+  if(!charId)return;
   const data={
-    v:3,ts:Date.now(),
+    v:3,ts:Date.now(),charId:charId,
     name:p.name,voc:p.voc,lv:p.lv,xp:p.xp,
     hp:Math.floor(p.hp),mhp:p.mhp,mp:Math.floor(p.mp),mmp:p.mmp,
     batk:p.batk,bdef:p.bdef,gold:p.gold,
@@ -1753,21 +1891,61 @@ function saveGame(slot){
     inv:p.inv,eq:p.eq,
     skills:p.skills,skillXp:p.skillXp,
     quests:G.quests.map(q=>({id:q.id,progress:q.progress,done:q.done})),
-    kills:G.kills,spells:p.spells,_ck:_hash(p.name+p.voc+p.lv),premium:p.premium||{active:false,expiry:0,addr:''},blessings:p.blessings||[],softBootCharges:p.softBootCharges||0,premium:p.premium||{active:false,expiry:0,addr:''},blessings:p.blessings||[],softBootCharges:p.softBootCharges||0,
+    kills:G.kills,spells:p.spells,_ck:_hash(p.name+p.voc+p.lv),
+    premium:p.premium||{active:false,expiry:0,addr:''},
+    blessings:p.blessings||[],softBootCharges:p.softBootCharges||0,
   };
-  try{localStorage.setItem(SAVE_KEY+slot,JSON.stringify(data));showSaveInd();}
-  catch(e){console.error('Save failed:',e);}
+  try{
+    localStorage.setItem(getCharKey(charId),JSON.stringify(data));
+    // Update char list metadata
+    const list=getCharList();
+    const idx=list.findIndex(c=>c.id===charId);
+    const meta={id:charId,name:p.name,voc:p.voc,lv:p.lv,gold:p.gold,ts:Date.now()};
+    if(idx>=0)list[idx]=meta;else list.push(meta);
+    saveCharList(list);
+    showSaveInd();
+  }catch(e){console.error('Save failed:',e);}
 }
 
-function loadGame(slot){
-  const raw=localStorage.getItem(SAVE_KEY+slot);
+function loadGame(charId){
+  const raw=localStorage.getItem(getCharKey(charId));
   if(!raw)return null;
   try{return JSON.parse(raw);}catch(e){return null;}
 }
 
-function deleteSave(slot){localStorage.removeItem(SAVE_KEY+slot);renderSaveSlots();}
+function deleteSave(charId){
+  localStorage.removeItem(getCharKey(charId));
+  const list=getCharList().filter(c=>c.id!==charId);
+  saveCharList(list);
+  renderSaveSlots();
+}
 
-function getSaves(){const saves=[];for(let i=0;i<3;i++){saves.push(loadGame(i));}return saves;}
+function getSaves(){
+  const list=getCharList();
+  return list.sort((a,b)=>b.lv-a.lv||b.ts-a.ts);
+}
+
+function migrateOldSaves(){
+  if(!walletAddr)return;
+  const oldKey='megarealms_'+walletAddr.toLowerCase()+'_save_';
+  let migrated=false;
+  for(let i=0;i<3;i++){
+    const raw=localStorage.getItem(oldKey+i);
+    if(!raw)continue;
+    try{
+      const data=JSON.parse(raw);
+      const charId=generateCharId();
+      data.charId=charId;
+      localStorage.setItem(getCharKey(charId),JSON.stringify(data));
+      const list=getCharList();
+      list.push({id:charId,name:data.name,voc:data.voc,lv:data.lv,gold:data.gold,ts:data.ts||Date.now()});
+      saveCharList(list);
+      localStorage.removeItem(oldKey+i);
+      migrated=true;
+    }catch(e){}
+  }
+  return migrated;
+}
 
 function showSaveInd(){
   const ind=document.getElementById('save-ind');
@@ -1776,18 +1954,19 @@ function showSaveInd(){
 }
 
 function autoSave(n){
-  if(!G.player||G.player.hp<=0)return;
+  if(!G.player||G.player.hp<=0||!G.player._charId)return;
   if(n-lastAutoSave<60000)return;
   lastAutoSave=n;
-  saveGame(activeSlot);
+  saveGame(G.player._charId);
 }
 
-function triggerSave(){if(G.player&&G.player.hp>0)saveGame(activeSlot);}
+function triggerSave(){if(G.player&&G.player.hp>0&&G.player._charId)saveGame(G.player._charId);}
 
 // ===== INIT FROM SAVE =====
 function initFromSave(data){
   document.getElementById('start-screen').style.display='none';
   document.getElementById('game-screen').style.display='flex';
+  document.getElementById('mm-wrap').style.display='block';
   SHEET=new Image();
   SHEET.onload=function(){buildTileSprites();};
   SHEET.onerror=function(){buildTileSprites();};
@@ -1805,7 +1984,8 @@ function initFromSave(data){
   p.inv=data.inv||[];p.eq=data.eq||{helmet:null,armor:null,weapon:null,shield:null,legs:null,boots:null};
   p.skills=data.skills||{melee:10,distance:10,magic:0,shielding:10};
   p.skillXp=data.skillXp||{melee:0,distance:0,magic:0,shielding:0};
-  if(data.voc==='sorcerer'||data.voc==='druid'){data.voc='mage';p.voc='mage';}if(data.spells)p.spells=data.spells;if(data.premium)p.premium=data.premium;if(data._ck)p._ck=data._ck;if(data.blessings)p.blessings=data.blessings;if(data.softBootCharges)p.softBootCharges=data.softBootCharges;if(data.premium)p.premium=data.premium;if(data.blessings)p.blessings=data.blessings;if(data.softBootCharges)p.softBootCharges=data.softBootCharges;
+  if(data.voc==='sorcerer'||data.voc==='druid'){data.voc='mage';p.voc='mage';}if(data.spells)p.spells=data.spells;if(data.premium)p.premium=data.premium;if(data._ck)p._ck=data._ck;if(data.blessings)p.blessings=data.blessings;if(data.softBootCharges)p.softBootCharges=data.softBootCharges;
+  p._charId=data._charId||data.charId||generateCharId();
   migrateSpells();
   G.quests=(data.quests||[]).map(q=>{const qd=QUEST_DEFS.find(d=>d.id===q.id);return qd?{...qd,progress:q.progress,done:q.done}:null;}).filter(Boolean);
   G.kills=data.kills||{};
@@ -1827,102 +2007,110 @@ function initFromSave(data){
 // ===== RENDER SAVE SLOTS =====
 function renderSaveSlots(){
   const cont=document.getElementById('save-slots');cont.innerHTML='';
-  const saves=getSaves();
+  const chars=getSaves();
   const vocIcons={knight:'&#9876;',paladin:'&#127993;',mage:'&#9733;'};
-  let hasSaves=false;
-  for(let i=0;i<3;i++){
-    const d=saves[i];const div=document.createElement('div');
-    div.className='save-slot'+(d?'':' empty');
-    if(d){
-      hasSaves=true;
-      const dt=new Date(d.ts);
-      const timeStr=dt.toLocaleDateString()+' '+dt.toLocaleTimeString().slice(0,5);
-      div.innerHTML=`<span class="sv-icon">${vocIcons[d.voc]||'?'}</span><div class="sv-info"><div class="sv-name">${d.name} - ${d.voc}</div><div class="sv-detail">Lv ${d.lv} | ${d.gold}g | ${timeStr}</div></div>`;
-      const del=document.createElement('button');del.className='sv-del';del.textContent='X';
-      del.addEventListener('click',e=>{e.stopPropagation();if(confirm('Apagar save?'))deleteSave(i);});
-      div.appendChild(del);
-      const slot=i;
-      div.addEventListener('click',()=>{activeSlot=slot;initFromSave(d);});
-    }else{
-      div.innerHTML=`<span class="sv-icon">&#128190;</span><div class="sv-info"><div class="sv-name">Slot ${i+1} - Vazio</div><div class="sv-detail">Crie um novo personagem</div></div>`;
-      const slot=i;
-      div.addEventListener('click',()=>{activeSlot=slot;switchTab('new');});
-    }
+  if(chars.length===0){
+    cont.innerHTML='<div style="font-size:7px;color:#666;text-align:center;padding:20px;">No characters found.<br>Create your first character!</div>';
+    showNewCharView();
+    return;
+  }
+  const listView=document.getElementById('char-list-view');
+  const newView=document.getElementById('tab-new');
+  if(listView)listView.style.display='block';
+  if(newView)newView.style.display='none';
+  for(const c of chars){
+    const div=document.createElement('div');
+    div.className='save-slot';
+    const dt=new Date(c.ts);
+    const timeStr=dt.toLocaleDateString()+' '+dt.toLocaleTimeString().slice(0,5);
+    const lvColor=c.lv>=50?'#f44':c.lv>=30?'#fa3':c.lv>=15?'#4af':'#f0c040';
+    div.innerHTML=`<span class="sv-icon">${vocIcons[c.voc]||'?'}</span><div class="sv-info"><div class="sv-name">${c.name} <span style="color:${lvColor};">[Lv ${c.lv}]</span></div><div class="sv-detail">${c.voc} | ${c.gold}g | ${timeStr}</div></div>`;
+    const del=document.createElement('button');del.className='sv-del';del.textContent='X';
+    const charId=c.id;
+    del.addEventListener('click',e=>{e.stopPropagation();if(confirm('Delete character '+c.name+'?'))deleteSave(charId);});
+    div.appendChild(del);
+    div.addEventListener('click',()=>{
+      const data=loadGame(charId);
+      if(data){data._charId=charId;initFromSave(data);}
+    });
     cont.appendChild(div);
   }
-  if(!hasSaves)switchTab('new');
+}
+
+function showNewCharView(){
+  const listView=document.getElementById('char-list-view');
+  const newView=document.getElementById('tab-new');
+  if(listView)listView.style.display='none';
+  if(newView)newView.style.display='block';
+}
+
+function showCharListView(){
+  const listView=document.getElementById('char-list-view');
+  const newView=document.getElementById('tab-new');
+  if(listView)listView.style.display='block';
+  if(newView)newView.style.display='none';
+  renderSaveSlots();
 }
 
 function switchTab(tab){
-  document.getElementById('tb-load').classList.toggle('active',tab==='load');
-  document.getElementById('tb-new').classList.toggle('active',tab==='new');
-  document.getElementById('tab-load').classList.toggle('active',tab==='load');
-  document.getElementById('tab-new').classList.toggle('active',tab==='new');
+  if(tab==='new')showNewCharView();
+  else showCharListView();
 }
 
-// ===== BLOCKCHAIN =====
-const CHAR_ABI=[
-  'function mintCharacter(string name, string voc) returns (uint256)',
-  'function saveProgress(uint256 charId, uint256 level, uint256 xp, uint256 hp, uint256 maxHp, uint256 mp, uint256 maxMp, uint256 atk, uint256 def, uint256 gold)',
-  'function getPlayerCharId(address player) view returns (uint256)',
-  'function getCharacter(uint256 charId) view returns (tuple(string name, string vocation, uint256 level, uint256 xp, uint256 hp, uint256 maxHp, uint256 mp, uint256 maxMp, uint256 atk, uint256 def, uint256 gold, uint256 createdAt, uint256 lastSaved))',
-];
+// ===== BLOCKCHAIN / WALLET LOGIN =====
 let walletAddr=null;
 let charContract=null;
 
-async function connectWallet(){
-  const b=document.getElementById('wbtn');
-  if(typeof window.ethereum==='undefined'){msg('Instale MetaMask/Krypton!','system');return null;}
+function getSaveKeyForWallet(addr){
+  return 'megarealms_'+addr.toLowerCase()+'_save_';
+}
+
+async function loginWithWallet(){
+  if(typeof window.ethereum==='undefined'){
+    document.getElementById('login-status').innerHTML='<span style="color:#f44;">No wallet detected! Please install MetaMask or Rabby.</span>';
+    return null;
+  }
   try{
+    document.getElementById('login-status').innerHTML='<span style="color:#f0c040;">Connecting...</span>';
     const accs=await window.ethereum.request({method:'eth_requestAccounts'});
     walletAddr=accs[0];
-    b.textContent=walletAddr.slice(0,6)+'...'+walletAddr.slice(-4);
-    b.style.borderColor='#4f4';
-    msg(`Wallet: ${walletAddr.slice(0,8)}...`,'system');
-    document.getElementById('chain-btns').style.display='flex';
-    document.getElementById('chain-sync').style.display='inline-block';
+    SAVE_KEY=getSaveKeyForWallet(walletAddr);
+    migrateOldSaves();
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('start-screen').style.display='block';
+    const wbtn=document.getElementById('wbtn');
+    const shortAddr=walletAddr.slice(0,6)+'...'+walletAddr.slice(-4);
+    wbtn.textContent=shortAddr;
+    wbtn.style.borderColor='#4f4';
+    document.getElementById('wallet-info').innerHTML='Connected: <b style="color:#f0c040;">'+shortAddr+'</b>';
+    renderSaveSlots();
     return walletAddr;
-  }catch(e){msg('Erro wallet','system');return null;}
+  }catch(e){
+    document.getElementById('login-status').innerHTML='<span style="color:#f44;">Connection refused. Please try again.</span>';
+    return null;
+  }
+}
+
+async function connectWallet(){
+  if(walletAddr)return walletAddr;
+  return await loginWithWallet();
 }
 
 async function syncToChain(){
-  if(!walletAddr||!G.player){msg('Conecte wallet primeiro!','system');return;}
-  msg('Salvando na blockchain...','system');
-  try{
-    const p=G.player;
-    const data={name:p.name,voc:p.voc,lv:p.lv,xp:p.xp,hp:Math.floor(p.hp),mhp:p.mhp,mp:Math.floor(p.mp),mmp:p.mmp,atk:Math.floor(p.atk),def:Math.floor(p.def),gold:p.gold};
-    localStorage.setItem('megarealms_chain_'+walletAddr,JSON.stringify(data));
-    msg('Progress saved to blockchain!','system');
-    msg(`${p.name} Lv${p.lv} sincronizado com wallet`,'system');
-  }catch(e){msg('Save error: '+e.message,'system');}
+  if(!walletAddr||!G.player)return;
+  triggerSave();
 }
 
 async function loadFromChain(){
-  if(!walletAddr){await connectWallet();if(!walletAddr)return;}
-  try{
-    const raw=localStorage.getItem('megarealms_chain_'+walletAddr);
-    if(!raw){msg('No save found for this wallet','system');return;}
-    const data=JSON.parse(raw);
-    const saveData={
-      v:3,ts:Date.now(),name:data.name,voc:data.voc,
-      lv:data.lv,xp:data.xp,hp:data.hp,mhp:data.mhp,mp:data.mp,mmp:data.mmp,
-      batk:data.atk,bdef:data.def,gold:data.gold,
-      x:90,y:60,dir:2,floor:0,
-      inv:[{id:'hp_pot',q:10},{id:'mp_pot',q:5}],
-      eq:{helmet:null,armor:null,weapon:null,shield:null,legs:null,boots:null},
-      skills:{melee:10,distance:10,magic:0,shielding:10},
-      skillXp:{melee:0,distance:0,magic:0,shielding:0},
-      quests:[],kills:{},spells:null,
-    };
-    activeSlot=0;initFromSave(saveData);
-    msg('Character loaded from blockchain!','system');
-  }catch(e){msg('Load error: '+e.message,'system');}
+  if(!walletAddr)return;
+  renderSaveSlots();
 }
 
 // ===== INIT GAME (new character) =====
 function initGame(name,voc){
   document.getElementById('start-screen').style.display='none';
   document.getElementById('game-screen').style.display='flex';
+  document.getElementById('mm-wrap').style.display='block';
   SHEET=new Image();
   SHEET.onload=function(){console.log('Spritesheet loaded');buildTileSprites();};
   SHEET.onerror=function(){console.log('Spritesheet not found, using fallback');buildTileSprites();};
@@ -1932,6 +2120,7 @@ function initGame(name,voc){
   for(let f=0;f<FLOORS;f++)G.maps.push(genMap(f));
   G.floor=0;
   G.player=new Player(name,voc);
+  G.player._charId=generateCharId();
   G.cv=document.getElementById('gc');G.cx=G.cv.getContext('2d');
   function resize(){
     const mid=document.getElementById('mid');
@@ -1948,7 +2137,7 @@ function initGame(name,voc){
   msg('Blue NPCs=shop | Orange=quest | White=heal','system');
   msg('Enter=chat | Right-click=sell item','system');
   requestAnimationFrame(loop);
-  setTimeout(()=>saveGame(activeSlot),2000);
+  setTimeout(()=>saveGame(G.player._charId),2000);
 }
 
 // ===== HOTKEY CONFIG =====
@@ -2018,15 +2207,12 @@ document.getElementById('cn').addEventListener('input',()=>{document.getElementB
 document.getElementById('bgo').addEventListener('click',()=>{
   const n=document.getElementById('cn').value.trim();
   if(n&&selV){
-    const saves=getSaves();
-    activeSlot=saves.findIndex(s=>!s);
-    if(activeSlot<0)activeSlot=0;
     initGame(n,selV);
-    setTimeout(()=>saveGame(activeSlot),2000);
+    setTimeout(()=>saveGame(G.player._charId),2000);
   }
 });
-document.getElementById('tb-load').addEventListener('click',()=>switchTab('load'));
-document.getElementById('tb-new').addEventListener('click',()=>switchTab('new'));
+document.getElementById('btn-new-char').addEventListener('click',showNewCharView);
+document.getElementById('btn-back-list').addEventListener('click',showCharListView);
 document.getElementById('scl').addEventListener('click',closeShop);
 document.getElementById('skcl').addEventListener('click',closeSkills);
 document.getElementById('blcl').onclick=()=>{document.getElementById('bless-ov').style.display='none';};
@@ -2055,11 +2241,55 @@ document.getElementById('mm').addEventListener('click',(e)=>{
 });
 initCollapsible();
 document.getElementById('bresp').addEventListener('click',resp);
-document.getElementById('wbtn').addEventListener('click',connectWallet);
-document.getElementById('chain-sync').addEventListener('click',syncToChain);
-document.getElementById('btn-chain-load').addEventListener('click',loadFromChain);
+document.getElementById('wbtn').addEventListener('click',()=>{if(walletAddr){navigator.clipboard.writeText(walletAddr).then(()=>msg('Wallet address copied!','system')).catch(()=>{});}});
 
-renderSaveSlots();
+// ===== TERMS & LOGIN SCREEN =====
+document.getElementById('chk-terms').addEventListener('change',function(){
+  document.getElementById('btn-agree').disabled=!this.checked;
+});
+document.getElementById('btn-agree').addEventListener('click',function(){
+  if(!document.getElementById('chk-terms').checked)return;
+  localStorage.setItem('megarealms_terms_accepted','1');
+  document.getElementById('terms-screen').style.display='none';
+  document.getElementById('login-screen').style.display='block';
+});
+document.getElementById('btn-metamask').addEventListener('click',loginWithWallet);
+document.getElementById('btn-rabby').addEventListener('click',loginWithWallet);
+document.getElementById('btn-walletconnect').addEventListener('click',loginWithWallet);
+
+// Check if terms already accepted
+if(localStorage.getItem('megarealms_terms_accepted')==='1'){
+  document.getElementById('terms-screen').style.display='none';
+  document.getElementById('login-screen').style.display='block';
+}
+
+// Listen for wallet account changes
+if(window.ethereum){
+  window.ethereum.on('accountsChanged',function(accounts){
+    if(accounts.length===0){
+      walletAddr=null;
+      location.reload();
+    }else if(accounts[0]!==walletAddr){
+      location.reload();
+    }
+  });
+}
+
+// Skip wallet (dev mode)
+document.getElementById('btn-skip-wallet').addEventListener('click',function(){
+  walletAddr='0xDEV_TEST_MODE';
+  SAVE_KEY='megarealms_devtest_save_';
+  migrateOldSaves();
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('start-screen').style.display='block';
+  const wbtn=document.getElementById('wbtn');
+  wbtn.textContent='DEV MODE';
+  wbtn.style.borderColor='#f66';
+  document.getElementById('wallet-info').innerHTML='<span style="color:#f66;">Dev Mode — no wallet connected</span>';
+  renderSaveSlots();
+});
+
+// renderSaveSlots called after wallet login
 </script>
 </body>
 </html>

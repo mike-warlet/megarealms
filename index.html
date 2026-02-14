@@ -472,16 +472,16 @@ function buildTileSpritesOLD(){
 
 // ============ TILE SPRITES (Spritesheet) ============
 function buildTileSprites(){
-  const old=buildTileSpritesOLD();
-  spriteCache.grass=(SHEET&&SM.grass1)?sheetSprite('grass1'):old[TT.G];
-  spriteCache.grass2=(SHEET&&SM.grass2)?sheetSprite('grass2'):old[TT.G];
-  spriteCache.grass3=(SHEET&&SM.grass3)?sheetSprite('grass3'):old[TT.G];
-  spriteCache.dirt=(SHEET&&SM.dirt1)?sheetSprite('dirt1'):old[TT.D];
-  spriteCache.water=(SHEET&&SM.water1)?sheetSprite('water1'):old[TT.W];
-  spriteCache.tree=(SHEET&&SM.tree1)?createSprite(32,32,(ctx)=>{ctx.drawImage(old[TT.G],0,0);drawSpr(ctx,'tree1',0,0);}):old[TT.TR];
-  spriteCache.wall=(SHEET&&SM.brick1)?sheetSprite('brick1'):old[TT.WL];
+  const old=buildTileSpritesOLD();const sheetOK=SHEET&&SHEET.naturalWidth>0;
+  spriteCache.grass=(sheetOK&&SM.grass1)?sheetSprite('grass1'):old[TT.G];
+  spriteCache.grass2=(sheetOK&&SM.grass2)?sheetSprite('grass2'):old[TT.G];
+  spriteCache.grass3=(sheetOK&&SM.grass3)?sheetSprite('grass3'):old[TT.G];
+  spriteCache.dirt=(sheetOK&&SM.dirt1)?sheetSprite('dirt1'):old[TT.D];
+  spriteCache.water=(sheetOK&&SM.water1)?sheetSprite('water1'):old[TT.W];
+  spriteCache.tree=(sheetOK&&SM.tree1)?createSprite(32,32,(ctx)=>{ctx.drawImage(old[TT.G],0,0);drawSpr(ctx,'tree1',0,0);}):old[TT.TR];
+  spriteCache.wall=(sheetOK&&SM.brick1)?sheetSprite('brick1'):old[TT.WL];
   spriteCache.floor=old[TT.FL];
-  spriteCache.sand=(SHEET&&SM.sand1)?sheetSprite('sand1'):old[TT.SA];
+  spriteCache.sand=(sheetOK&&SM.sand1)?sheetSprite('sand1'):old[TT.SA];
   spriteCache.cave=old[TT.CV];
   spriteCache.cavewall=old[TT.CW];
   spriteCache.door=old[TT.DR];
@@ -2495,7 +2495,7 @@ function initFromSave(data){
   G.quests=(data.quests||[]).map(q=>{const qd=QUEST_DEFS.find(d=>d.id===q.id);return qd?{...qd,progress:q.progress,done:q.done}:null;}).filter(Boolean);
   G.kills=data.kills||{};
   G.cv=document.getElementById('gc');G.cx=G.cv.getContext('2d');
-  function resize(){const mid=document.getElementById('mid');const w=mid.clientWidth-210,h=mid.clientHeight;G.cv.width=VW*TS;G.cv.height=VH*TS;G.cv.style.width=w+'px';G.cv.style.height=h+'px';}
+  function resize(){const mid=document.getElementById('mid');const w=mid.clientWidth-260,h=mid.clientHeight;G.cv.width=VW*TS;G.cv.height=VH*TS;G.cv.style.width=w+'px';G.cv.style.height=h+'px';}
   setTimeout(resize,50);window.addEventListener('resize',resize);
   spawnMons();placeNPCs();setupInput();updInv();updSpells();updQuests();updSkills();updPremInd();updPremInd();
   const fi=FLOOR_INFO[G.floor];
@@ -2648,7 +2648,7 @@ function initGame(name,voc){
   G.cv=document.getElementById('gc');G.cx=G.cv.getContext('2d');
   function resize(){
     const mid=document.getElementById('mid');
-    const w=mid.clientWidth-210,h=mid.clientHeight;
+    const w=mid.clientWidth-260,h=mid.clientHeight;
     G.cv.width=VW*TS;G.cv.height=VH*TS;
     G.cv.style.width=w+'px';G.cv.style.height=h+'px';
   }

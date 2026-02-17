@@ -946,10 +946,10 @@ function genMap(floor){
       if(towerIdx===3&&nv>0.72)t=TT.CW;
       const _tStairs=STAIRS.filter(s=>s.fx===floor);
       _tStairs.forEach(s=>{const dx2=Math.abs(x-s.x),dy2=Math.abs(y-s.y);if(dx2<=3&&dy2<=3)t=TT.FL;});
-      _tStairs.forEach(s=>{if(x===s.x&&y===s.y)t=s.dir==='up'?TT.SU:TT.SD;});
+      _tStairs.forEach(s=>{if(x===s.x&&y===s.y){t=s.tx<s.fx?TT.SU:TT.SD;}});
       const _tArrivals=STAIRS.filter(s=>s.tx===floor);
       _tArrivals.forEach(s=>{const dx2=Math.abs(x-s.dx),dy2=Math.abs(y-s.dy);if(dx2<=3&&dy2<=3)t=TT.FL;});
-      _tArrivals.forEach(s=>{if(x===s.dx&&y===s.dy)t=s.dir==='down'?TT.SU:TT.SD;});
+      _tArrivals.forEach(s=>{if(x===s.dx&&y===s.dy){t=s.fx<s.tx?TT.SD:TT.SU;}});
     }
     else{
       // Underground floors (1-9, 11+): cave generation
@@ -1074,12 +1074,20 @@ class Mon{
   constructor(t,x,y){this.t=t;this.x=x;this.y=y;this.alive=true;this.hp=MONS[t].hp;this.rt=0;this.la=0;this.lm=0;this.dir=2;this.spawnAnim=0;}
   respawnTime(){
     const base=MONS[this.t].hp;
-    if(base<=30)return 15000+Math.random()*10000;
-    if(base<=60)return 20000+Math.random()*15000;
-    if(base<=130)return 30000+Math.random()*20000;
-    if(base<=350)return 45000+Math.random()*30000;
-    if(base<=1200)return 60000+Math.random()*60000;
-    return 90000+Math.random()*90000;
+    // Tower monsters respawn faster (floors 14-33)
+    if(G.floor>=14&&G.floor<=33){
+      if(base<=100)return 8000+Math.random()*5000;
+      if(base<=200)return 10000+Math.random()*8000;
+      if(base<=400)return 15000+Math.random()*10000;
+      if(base<=600)return 20000+Math.random()*15000;
+      return 25000+Math.random()*15000;
+    }
+    if(base<=30)return 10000+Math.random()*8000;
+    if(base<=60)return 15000+Math.random()*10000;
+    if(base<=130)return 20000+Math.random()*15000;
+    if(base<=350)return 30000+Math.random()*20000;
+    if(base<=1200)return 45000+Math.random()*30000;
+    return 60000+Math.random()*60000;
   }
   update(n){
     if(!this.alive){if(this.rt&&n>this.rt){this.alive=true;this.hp=MONS[this.t].hp;this.spawnAnim=n;
@@ -1258,6 +1266,14 @@ function updSpells(){
     d.innerHTML=`<span class="sk">${hkLabel}</span><span class="si2">${sp.i}</span>`;
     d.title=`${sp.n}: ${sp.d} (${sp.mana} MP) [${hkLabel}]`;
     d.addEventListener('click',()=>castSpell(i));
+    d.addEventListener('contextmenu',(e)=>{
+      e.preventDefault();hideCtxMenu();
+      const curKey=G.hotkeys['spell'+(i+1)]||('F'+(i+1));
+      showCtxMenu(e.clientX,e.clientY,sp.n+' ['+curKey+']',[
+        {icon:'\u2328',label:'Change Hotkey ['+curKey+']',fn:()=>{assignSpellHotkey(i,sp.n);}},
+        {icon:'\u2139',label:sp.d+' ('+sp.mana+' MP)',fn:()=>{msg(sp.n+': '+sp.d+' | Mana: '+sp.mana+' | CD: '+(sp.cd/1000)+'s','system');}}
+      ]);
+    });
     bar.appendChild(d);
   });
 }
@@ -2039,6 +2055,13 @@ function ctxInvItem(idx,e){
     }
   }
   if(dd.t==='training'){const ch=it.charges!==undefined?it.charges:dd.charges;opts.push({icon:'\u2694',label:'Train ('+ch+' charges)',fn:()=>{if(!isPrem()){msg('Training requires Premium Account!','system');return;}const nearDummy=G.npcs.find(n=>n.type==='trainer_dummy'&&Math.abs(n.x-p.x)<=2&&Math.abs(n.y-p.y)<=2);if(!nearDummy){msg('You need to be near a Training Dummy to use this!','system');return;}startTraining(idx,nearDummy);}});}
+  if(dd.t==='potion'||dd.t==='food'){
+    opts.push({sep:true});
+    const curHpKey=Object.entries(G.hotkeys).find(([k,v])=>k==='hp_pot');
+    const curMpKey=Object.entries(G.hotkeys).find(([k,v])=>k==='mp_pot');
+    if(dd.heal)opts.push({icon:'\u2328',label:'Set as HP Hotkey ['+G.hotkeys.hp_pot+']',fn:()=>{assignItemHotkey('hp_pot',dd.n);}});
+    if(dd.mana&&!dd.heal)opts.push({icon:'\u2328',label:'Set as MP Hotkey ['+G.hotkeys.mp_pot+']',fn:()=>{assignItemHotkey('mp_pot',dd.n);}});
+  }
   if(G.shop){opts.push({sep:true});opts.push({icon:'\uD83D\uDCB0',label:'Sell ('+Math.floor(dd.p/3)+'g)',fn:()=>{sellItem(idx);}});}
   if(it.q>1){
     opts.push({sep:true});
@@ -2214,6 +2237,31 @@ function useMpPot(){
   const pot=p.inv.findIndex(i=>{const d=ITEMS[i.id];return d&&d.mana&&d.t==='potion'&&(!d.vocs||d.vocs.includes(p.voc));});
   if(pot>=0){const d=ITEMS[p.inv[pot].id];p.mp=Math.min(p.mmp,p.mp+d.mana);floatText(p.x,p.y,'+'+d.mana,'#44f');if(d.heal){p.hp=Math.min(p.mhp,p.hp+d.heal);floatText(p.x,p.y,'+'+d.heal,'#4f4');}p.rmItem(pot);updInv();}
 }
+function assignItemHotkey(action,itemName){
+  G.editingHotkey=true;
+  msg('Press a key to assign as hotkey for '+itemName+' ('+action.replace('_',' ')+')...','system');
+  const handler=function(ev){ev.preventDefault();ev.stopPropagation();
+    G.hotkeys[action]=ev.key;saveHotkeys();
+    msg(itemName+' hotkey set to ['+ev.key+']','system');
+    G.editingHotkey=false;updSpells();
+    document.removeEventListener('keydown',handler,true);
+  };
+  document.addEventListener('keydown',handler,true);
+  setTimeout(()=>{if(G.editingHotkey){G.editingHotkey=false;document.removeEventListener('keydown',handler,true);msg('Hotkey assignment cancelled (timeout)','system');}},5000);
+}
+function assignSpellHotkey(spellIdx,spellName){
+  const action='spell'+(spellIdx+1);
+  G.editingHotkey=true;
+  msg('Press a key to assign as hotkey for '+spellName+'...','system');
+  const handler=function(ev){ev.preventDefault();ev.stopPropagation();
+    G.hotkeys[action]=ev.key;saveHotkeys();
+    msg(spellName+' hotkey set to ['+ev.key+']','system');
+    G.editingHotkey=false;updSpells();
+    document.removeEventListener('keydown',handler,true);
+  };
+  document.addEventListener('keydown',handler,true);
+  setTimeout(()=>{if(G.editingHotkey){G.editingHotkey=false;document.removeEventListener('keydown',handler,true);msg('Hotkey assignment cancelled (timeout)','system');}},5000);
+}
 function matchHotkey(ekey){
   const hk=G.hotkeys;
   for(let i=1;i<=8;i++){if(ekey===hk['spell'+i])return {type:'spell',idx:i-1};}
@@ -2251,7 +2299,7 @@ function setupInput(){
 
 // SPAWN
 const PREM_ZONES={f11:{x:0,y:0,w:100,h:80,c:[{id:'dragon',n:10},{id:'dragon_lord',n:8},{id:'hydra',n:6},{id:'serpent_spawn',n:5}]},f12:{x:0,y:0,w:100,h:80,c:[{id:'demon',n:10},{id:'hellhound',n:8},{id:'lich',n:6},{id:'warlock',n:5}]},f13:{x:0,y:0,w:100,h:80,c:[{id:'juggernaut',n:6},{id:'undead_dragon',n:5},{id:'demon',n:6},{id:'dragon_lord',n:4},{id:'hydra',n:4}]}};
-const TOWER_ZONES={f14:{x:10,y:10,w:80,h:60,c:[{id:'fire_sprite',n:8}]},f15:{x:10,y:10,w:80,h:60,c:[{id:'lava_golem',n:7}]},f16:{x:10,y:10,w:80,h:60,c:[{id:'fire_elemental',n:6}]},f17:{x:10,y:10,w:80,h:60,c:[{id:'inferno_guardian',n:5}]},f18:{x:10,y:10,w:80,h:60,c:[{id:'flame_lord',n:3}]},f19:{x:10,y:10,w:80,h:60,c:[{id:'ice_sprite',n:8}]},f20:{x:10,y:10,w:80,h:60,c:[{id:'frost_golem',n:7}]},f21:{x:10,y:10,w:80,h:60,c:[{id:'blizzard_elemental',n:6}]},f22:{x:10,y:10,w:80,h:60,c:[{id:'glacier_guardian',n:5}]},f23:{x:10,y:10,w:80,h:60,c:[{id:'frost_wyrm',n:3}]},f24:{x:10,y:10,w:80,h:60,c:[{id:'swamp_toad',n:8}]},f25:{x:10,y:10,w:80,h:60,c:[{id:'decay_crawler',n:7}]},f26:{x:10,y:10,w:80,h:60,c:[{id:'poison_beast',n:6}]},f27:{x:10,y:10,w:80,h:60,c:[{id:'nature_wraith',n:5}]},f28:{x:10,y:10,w:80,h:60,c:[{id:'swamp_hydra',n:3}]},f29:{x:10,y:10,w:80,h:60,c:[{id:'shadow_wisp',n:8}]},f30:{x:10,y:10,w:80,h:60,c:[{id:'umbral_wraith',n:7}]},f31:{x:10,y:10,w:80,h:60,c:[{id:'void_stalker',n:6}]},f32:{x:10,y:10,w:80,h:60,c:[{id:'shadow_lord',n:5}]},f33:{x:10,y:10,w:80,h:60,c:[{id:'void_dragon',n:3}]}};
+const TOWER_ZONES={f14:{x:10,y:10,w:80,h:60,c:[{id:'fire_sprite',n:16}]},f15:{x:10,y:10,w:80,h:60,c:[{id:'lava_golem',n:14}]},f16:{x:10,y:10,w:80,h:60,c:[{id:'fire_elemental',n:12}]},f17:{x:10,y:10,w:80,h:60,c:[{id:'inferno_guardian',n:10}]},f18:{x:10,y:10,w:80,h:60,c:[{id:'flame_lord',n:6}]},f19:{x:10,y:10,w:80,h:60,c:[{id:'ice_sprite',n:16}]},f20:{x:10,y:10,w:80,h:60,c:[{id:'frost_golem',n:14}]},f21:{x:10,y:10,w:80,h:60,c:[{id:'blizzard_elemental',n:12}]},f22:{x:10,y:10,w:80,h:60,c:[{id:'glacier_guardian',n:10}]},f23:{x:10,y:10,w:80,h:60,c:[{id:'frost_wyrm',n:6}]},f24:{x:10,y:10,w:80,h:60,c:[{id:'swamp_toad',n:16}]},f25:{x:10,y:10,w:80,h:60,c:[{id:'decay_crawler',n:14}]},f26:{x:10,y:10,w:80,h:60,c:[{id:'poison_beast',n:12}]},f27:{x:10,y:10,w:80,h:60,c:[{id:'nature_wraith',n:10}]},f28:{x:10,y:10,w:80,h:60,c:[{id:'swamp_hydra',n:6}]},f29:{x:10,y:10,w:80,h:60,c:[{id:'shadow_wisp',n:16}]},f30:{x:10,y:10,w:80,h:60,c:[{id:'umbral_wraith',n:14}]},f31:{x:10,y:10,w:80,h:60,c:[{id:'void_stalker',n:12}]},f32:{x:10,y:10,w:80,h:60,c:[{id:'shadow_lord',n:10}]},f33:{x:10,y:10,w:80,h:60,c:[{id:'void_dragon',n:6}]}};
 function getFloorZones(f){
   const out=[];
   for(const[k,z] of Object.entries(ZONES)){
@@ -2273,14 +2321,17 @@ function spawnMons(){
 }
 let lastDynSpawn=0;
 function dynamicSpawn(n){
-  if(n-lastDynSpawn<10000)return;lastDynSpawn=n;
+  const isTower=G.floor>=14&&G.floor<=33;
+  const spawnInterval=isTower?5000:7000;
+  if(n-lastDynSpawn<spawnInterval)return;lastDynSpawn=n;
   const before=G.mons.length;G.mons=G.mons.filter(m=>m.alive);if(G.mons.length>120)return;
   const zones=getFloorZones(G.floor);
   const counts={};G.mons.forEach(m=>{if(m.alive){const k=m.t+'|'+Math.floor(m.x/100)+'|'+Math.floor(m.y/80);counts[k]=(counts[k]||0)+1;}});
   zones.forEach(z=>{z.c.forEach(cr=>{
     const k=cr.id+'|'+Math.floor(z.x/100)+'|'+Math.floor(z.y/80);
     const alive=counts[k]||0;
-    if(alive<cr.n&&Math.random()<0.3){
+    const spawnChance=isTower?0.6:0.4;
+    if(alive<cr.n&&Math.random()<spawnChance){
       let x,y,tr=0;
       do{x=z.x+Math.floor(Math.random()*z.w);y=z.y+Math.floor(Math.random()*z.h);tr++;}
       while((!canW(x,y)||monAt(x,y)||(G.player&&Math.abs(G.player.x-x)+Math.abs(G.player.y-y)<5))&&tr<50);

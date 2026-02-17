@@ -1,7 +1,22 @@
 {
   "name": "megarealms",
   "compatibility_date": "2026-02-14",
+  "main": "worker.js",
   "assets": {
     "directory": "./"
-  }
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "GAME_ROOM",
+        "class_name": "GameRoom"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["GameRoom"]
+    }
+  ]
 }

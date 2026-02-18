@@ -227,6 +227,29 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
 .gold-bal{display:flex;justify-content:space-between;font-size:7px;color:#999;padding:4px 0;border-top:1px solid #222;margin-top:6px;}
 .gold-bal b{color:#f0c040;}
 .gold-status{font-size:6px;color:#888;text-align:center;padding:4px;min-height:16px;}
+#dao-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;justify-content:center;align-items:center;}
+#dao-p{background:#1a1a2a;border:2px solid #8060f0;border-radius:6px;padding:16px;max-width:440px;width:92%;max-height:80vh;overflow-y:auto;}
+#dao-p h3{font-size:10px;color:#8060f0;margin-bottom:10px;text-align:center;}
+.dao-tabs{display:flex;gap:4px;margin-bottom:10px;}
+.dao-tab{flex:1;background:#112;border:1px solid #333;color:#888;font-family:inherit;font-size:6px;padding:6px;border-radius:4px 4px 0 0;cursor:pointer;text-align:center;}
+.dao-tab.active{background:#1a1a2a;border-color:#8060f0;color:#8060f0;}
+.dao-info{font-size:7px;color:#ccc;line-height:2;padding:3px 0;}
+.dao-info b{color:#8060f0;}
+.dao-input-row{display:flex;align-items:center;gap:6px;margin:6px 0;}
+.dao-input-row input,.dao-input-row select{flex:1;background:#112;border:1px solid #333;color:#fff;font-family:inherit;font-size:7px;padding:5px;border-radius:4px;outline:none;}
+.dao-input-row input:focus,.dao-input-row select:focus{border-color:#8060f0;}
+.dao-btn{display:block;width:100%;margin:4px 0;background:linear-gradient(135deg,#8060f0,#6040d0);color:#fff;border:2px solid #7050e0;padding:7px;font-family:inherit;font-size:7px;border-radius:4px;cursor:pointer;}
+.dao-btn:hover{box-shadow:0 4px 16px rgba(128,96,240,.4);}
+.dao-btn:disabled{opacity:.4;cursor:not-allowed;}
+.dao-btn.secondary{background:#224;border-color:#448;color:#8af;}
+.dao-status{font-size:6px;color:#888;text-align:center;padding:3px;min-height:14px;}
+.dao-proposal{background:#112;border:1px solid #333;border-radius:4px;padding:6px;margin:4px 0;font-size:6px;}
+.dao-proposal .dp-title{color:#8060f0;font-size:7px;margin-bottom:3px;}
+.dao-proposal .dp-votes{display:flex;justify-content:space-between;color:#888;margin:3px 0;}
+.dao-proposal .dp-bar{height:4px;background:#222;border-radius:2px;overflow:hidden;margin:2px 0;}
+.dao-proposal .dp-bar-fill{height:100%;background:linear-gradient(90deg,#4f4,#8060f0);border-radius:2px;}
+.dao-project{background:#112;border:1px solid #333;border-radius:4px;padding:6px;margin:4px 0;font-size:7px;display:flex;justify-content:space-between;align-items:center;}
+.dao-project .dp-name{color:#8060f0;}.dao-project .dp-alloc{color:#4f4;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.1/ethers.umd.min.js" crossorigin="anonymous"></script>
 </head>
@@ -325,6 +348,7 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
     <div class="sb">&#9733; <b id="glt">100</b></div>
     <button id="buy-gold-btn" onclick="openGoldExchange();" style="background:linear-gradient(135deg,#40c080,#20a060);border:1px solid #30b070;color:#fff;font-family:inherit;font-size:5px;font-weight:bold;padding:3px 7px;border-radius:4px;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,0.4);box-shadow:0 1px 4px rgba(64,192,128,0.4);animation:realmGlow 2s ease-in-out infinite;">&#128176; BUY GOLD</button>
     <button id="prem-buy-btn" onclick="openPremPanel()" style="background:linear-gradient(135deg,#f0c040,#d4a020);border:1px solid #e0b030;color:#1a1a10;font-family:inherit;font-size:5px;font-weight:bold;padding:3px 7px;border-radius:4px;cursor:pointer;text-shadow:0 1px 0 rgba(255,255,255,0.3);box-shadow:0 1px 4px rgba(240,192,64,0.4);animation:premGlow 2s ease-in-out infinite;">&#9733; PREMIUM</button>
+    <button id="dao-btn" onclick="openDAOPanel()" style="background:linear-gradient(135deg,#8060f0,#6040d0);border:1px solid #7050e0;color:#fff;font-family:inherit;font-size:5px;font-weight:bold;padding:3px 7px;border-radius:4px;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,0.4);box-shadow:0 1px 4px rgba(128,96,240,0.4);">&#9878; DAO</button>
     <div id="floor-ind" class="f0"><span class="fi-icon">&#9728;</span><div><b id="fl-name">Surface</b><div class="fi-name">Floor 0</div></div></div>
     <button id="wbtn">Connect Wallet</button><span id="prem-ind" class="free">FREE</span>
     <button id="chain-sync" style="display:none;background:#224;border:1px solid #448;color:#8af;font-family:inherit;font-size:6px;padding:5px 8px;border-radius:3px;cursor:pointer;">&#9939; Sync</button>
@@ -385,6 +409,62 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
   </div>
   <div class="gold-status" id="gx-status"></div>
   <button class="gold-btn" style="background:#333;border-color:#555;margin-top:4px;" onclick="closeGoldExchange()">Close</button>
+</div></div>
+<div id="dao-ov"><div id="dao-p">
+  <h3>&#9878; REALM DAO</h3>
+  <div class="dao-tabs">
+    <button class="dao-tab active" id="dao-tab-stake" onclick="switchDaoTab('stake')">Stake</button>
+    <button class="dao-tab" id="dao-tab-vote" onclick="switchDaoTab('vote')">Vote</button>
+    <button class="dao-tab" id="dao-tab-projects" onclick="switchDaoTab('projects')">Projects</button>
+  </div>
+  <div id="dao-stake-panel">
+    <div class="dao-info"><b>Total Staked:</b> <span id="dao-total-staked">0</span> REALM</div>
+    <div class="dao-info"><b>Your Stake:</b> <span id="dao-your-stake">0</span> REALM</div>
+    <div class="dao-info"><b>Pending Rewards:</b> <span id="dao-rewards">0</span> REALM</div>
+    <div class="dao-info"><b>Voting Power:</b> <span id="dao-vpower">0</span></div>
+    <div class="dao-input-row">
+      <input type="number" id="dao-stake-input" placeholder="REALM to stake" step="1" min="0">
+    </div>
+    <button class="dao-btn" onclick="daoApproveStake()">1. Approve</button>
+    <button class="dao-btn" onclick="daoStake()" disabled id="dao-stake-btn">2. Stake</button>
+    <button class="dao-btn secondary" onclick="daoRequestUnstake()">Request Unstake</button>
+    <button class="dao-btn secondary" onclick="daoCompleteUnstake()">Complete Unstake (7d cooldown)</button>
+    <button class="dao-btn secondary" onclick="daoClaimRewards()">Claim Rewards</button>
+    <div class="dao-status" id="dao-stake-status"></div>
+  </div>
+  <div id="dao-vote-panel" style="display:none;">
+    <div class="dao-info" style="text-align:center;"><b>Active Proposals</b></div>
+    <div id="dao-proposals-list"></div>
+    <div style="border-top:1px solid #333;margin-top:8px;padding-top:8px;">
+      <div class="dao-info"><b>Create Proposal</b> (min 1,000 REALM staked)</div>
+      <div class="dao-input-row">
+        <select id="dao-prop-type">
+          <option value="0">Inflate Supply</option>
+          <option value="1">Add Project</option>
+          <option value="2">Remove Project</option>
+          <option value="3">Update Allocation</option>
+          <option value="6">Update Exchange Rate</option>
+          <option value="7">Pause Exchange</option>
+          <option value="8">Treasury Spend</option>
+        </select>
+      </div>
+      <div class="dao-input-row">
+        <input type="text" id="dao-prop-data" placeholder="Proposal data (see docs)">
+      </div>
+      <button class="dao-btn" onclick="daoCreateProposal()">Create Proposal</button>
+    </div>
+    <div class="dao-status" id="dao-vote-status"></div>
+  </div>
+  <div id="dao-projects-panel" style="display:none;">
+    <div class="dao-info" style="text-align:center;"><b>Registered Projects</b></div>
+    <div class="dao-info">Inflation split: 50% stakers | 40% projects | 10% treasury</div>
+    <div id="dao-projects-list"></div>
+    <div class="dao-info"><b>DAO Treasury:</b> <span id="dao-treasury">0</span> REALM</div>
+    <div class="dao-info"><b>Next Distribution:</b> <span id="dao-next-dist">-</span></div>
+    <button class="dao-btn" onclick="daoDistributeInflation()">Distribute Inflation (0.1% bounty)</button>
+    <div class="dao-status" id="dao-proj-status"></div>
+  </div>
+  <button class="dao-btn" style="background:#333;border-color:#555;margin-top:6px;" onclick="closeDAOPanel()">Close</button>
 </div></div>
 <div id="mm-wrap"><div id="mm-zoom"><button id="mm-zin" title="Zoom In">+</button><button id="mm-zout" title="Zoom Out">-</button></div><canvas id="mm" width="300" height="240"></canvas></div>
 <div id="ctx-menu"><div class="ctx-header" id="ctx-title"></div><div id="ctx-opts"></div></div>
@@ -964,6 +1044,216 @@ async function executeBuyGold(){
     document.getElementById('gx-status').innerHTML='<span style="color:#f44;">Transaction failed: '+(e.reason||e.message||'unknown')+'</span>';
     document.getElementById('gx-buy-btn').disabled=false;
   }
+}
+
+// ===== DAO PANEL =====
+const DAO_ADDR=''; // TODO: Set after deploy
+const DAO_ABI=[
+  'function stake(uint256 amount)',
+  'function requestUnstake(uint256 amount)',
+  'function completeUnstake()',
+  'function claimRewards()',
+  'function createProposal(uint8 pType, bytes data) returns (uint256)',
+  'function vote(uint256 proposalId, bool support)',
+  'function executeProposal(uint256 proposalId)',
+  'function distributeInflation()',
+  'function totalStaked() view returns (uint256)',
+  'function stakes(address) view returns (uint256 amount, uint256 rewardDebt, uint256 unstakeAmount, uint256 unstakeRequestTime)',
+  'function pendingRewards(address) view returns (uint256)',
+  'function votingPower(address) view returns (uint256)',
+  'function proposalCount() view returns (uint256)',
+  'function getProposal(uint256) view returns (uint8,address,uint256,uint256,uint256,uint256,bool,bool)',
+  'function projectCount() view returns (uint256)',
+  'function getProject(uint256) view returns (string,address,uint256,bool,uint256)',
+  'function treasuryBalance() view returns (uint256)',
+  'function lastRewardDistribution() view returns (uint256)'
+];
+
+function openDAOPanel(){
+  if(!walletAddr){msg('Connect your wallet first!','system');return;}
+  if(!DAO_ADDR){msg('DAO not deployed yet!','system');return;}
+  document.getElementById('dao-ov').style.display='flex';
+  switchDaoTab('stake');
+  refreshDaoData();
+}
+function closeDAOPanel(){document.getElementById('dao-ov').style.display='none';}
+function switchDaoTab(tab){
+  ['stake','vote','projects'].forEach(t=>{
+    document.getElementById('dao-tab-'+t).className='dao-tab'+(t===tab?' active':'');
+    document.getElementById('dao-'+t+'-panel').style.display=t===tab?'block':'none';
+  });
+  if(tab==='vote')refreshDaoProposals();
+  if(tab==='projects')refreshDaoProjects();
+}
+async function refreshDaoData(){
+  if(!DAO_ADDR||!walletAddr)return;
+  try{
+    const rpc=getReadProvider();
+    const dao=new ethers.Contract(DAO_ADDR,DAO_ABI,rpc);
+    const[totalSt,stakeInfo,rewards,vp]=await Promise.all([
+      dao.totalStaked(),dao.stakes(walletAddr),dao.pendingRewards(walletAddr),dao.votingPower(walletAddr)
+    ]);
+    document.getElementById('dao-total-staked').textContent=parseFloat(ethers.formatEther(totalSt)).toFixed(2);
+    document.getElementById('dao-your-stake').textContent=parseFloat(ethers.formatEther(stakeInfo.amount)).toFixed(2);
+    document.getElementById('dao-rewards').textContent=parseFloat(ethers.formatEther(rewards)).toFixed(4);
+    document.getElementById('dao-vpower').textContent=parseFloat(ethers.formatEther(vp)).toFixed(2);
+  }catch(e){console.warn('refreshDaoData:',e);}
+}
+async function daoApproveStake(){
+  const val=parseFloat(document.getElementById('dao-stake-input').value);
+  if(!val||val<=0)return;
+  try{
+    const amount=ethers.parseEther(val.toString());
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#f0c040;">Approving... confirm in wallet</span>';
+    const tx=await sendContractTx(REALM_TOKEN_ADDR,REALM_ABI,'approve',[DAO_ADDR,amount]);
+    await tx.wait();
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#4f4;">Approved! Click Stake</span>';
+    document.getElementById('dao-stake-btn').disabled=false;
+  }catch(e){
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#f44;">'+((e.reason||e.message||'error'))+'</span>';
+  }
+}
+async function daoStake(){
+  const val=parseFloat(document.getElementById('dao-stake-input').value);
+  if(!val||val<=0)return;
+  try{
+    const amount=ethers.parseEther(val.toString());
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#f0c040;">Staking... confirm in wallet</span>';
+    const tx=await sendContractTx(DAO_ADDR,DAO_ABI,'stake',[amount]);
+    await tx.wait();
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#4f4;">Staked '+val+' REALM!</span>';
+    msg('Staked '+val+' REALM in DAO!','quest');
+    document.getElementById('dao-stake-btn').disabled=true;
+    refreshDaoData();refreshGxBalances();
+  }catch(e){
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#f44;">'+(e.reason||e.message||'error')+'</span>';
+  }
+}
+async function daoRequestUnstake(){
+  const val=parseFloat(document.getElementById('dao-stake-input').value);
+  if(!val||val<=0){document.getElementById('dao-stake-status').innerHTML='<span style="color:#f44;">Enter amount</span>';return;}
+  try{
+    const amount=ethers.parseEther(val.toString());
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#f0c040;">Requesting unstake...</span>';
+    const tx=await sendContractTx(DAO_ADDR,DAO_ABI,'requestUnstake',[amount]);
+    await tx.wait();
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#4f4;">Unstake requested! 7 day cooldown started</span>';
+    refreshDaoData();
+  }catch(e){
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#f44;">'+(e.reason||e.message||'error')+'</span>';
+  }
+}
+async function daoCompleteUnstake(){
+  try{
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#f0c040;">Completing unstake...</span>';
+    const tx=await sendContractTx(DAO_ADDR,DAO_ABI,'completeUnstake',[]);
+    await tx.wait();
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#4f4;">Unstake complete! REALM returned</span>';
+    refreshDaoData();refreshGxBalances();
+  }catch(e){
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#f44;">'+(e.reason||e.message||'error')+'</span>';
+  }
+}
+async function daoClaimRewards(){
+  try{
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#f0c040;">Claiming rewards...</span>';
+    const tx=await sendContractTx(DAO_ADDR,DAO_ABI,'claimRewards',[]);
+    await tx.wait();
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#4f4;">Rewards claimed!</span>';
+    msg('DAO staking rewards claimed!','quest');
+    refreshDaoData();refreshGxBalances();
+  }catch(e){
+    document.getElementById('dao-stake-status').innerHTML='<span style="color:#f44;">'+(e.reason||e.message||'error')+'</span>';
+  }
+}
+async function refreshDaoProposals(){
+  if(!DAO_ADDR)return;
+  const el=document.getElementById('dao-proposals-list');
+  try{
+    const rpc=getReadProvider();
+    const dao=new ethers.Contract(DAO_ADDR,DAO_ABI,rpc);
+    const count=await dao.proposalCount();
+    const n=Number(count);
+    if(n===0){el.innerHTML='<div class="dao-info" style="text-align:center;color:#666;">No proposals yet</div>';return;}
+    const types=['Inflate','Add Project','Remove Project','Update Alloc','Add Minter','Remove Minter','Update Rate','Pause Exchange','Treasury Spend','Custom'];
+    let html='';
+    const start=Math.max(0,n-10);
+    for(let i=n-1;i>=start;i--){
+      const p=await dao.getProposal(i);
+      const total=p[2]+p[3];const pct=total>0n?Number(p[2]*100n/total):0;
+      const status=p[6]?'Executed':p[7]?'Cancelled':Date.now()/1000>Number(p[5])?'Ended':'Active';
+      html+='<div class="dao-proposal"><div class="dp-title">#'+i+' '+types[Number(p[0])]+'</div>';
+      html+='<div class="dp-votes"><span style="color:#4f4;">For: '+parseFloat(ethers.formatEther(p[2])).toFixed(0)+'</span><span style="color:#f44;">Against: '+parseFloat(ethers.formatEther(p[3])).toFixed(0)+'</span><span>'+status+'</span></div>';
+      html+='<div class="dp-bar"><div class="dp-bar-fill" style="width:'+pct+'%"></div></div>';
+      if(status==='Active'){
+        html+='<button class="dao-btn" style="font-size:6px;padding:4px;margin:2px 0;" onclick="daoVote('+i+',true)">Vote YES</button>';
+        html+='<button class="dao-btn secondary" style="font-size:6px;padding:4px;margin:2px 0;" onclick="daoVote('+i+',false)">Vote NO</button>';
+      }else if(status==='Ended'){
+        html+='<button class="dao-btn" style="font-size:6px;padding:4px;margin:2px 0;" onclick="daoExecute('+i+')">Execute</button>';
+      }
+      html+='</div>';
+    }
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div class="dao-info" style="color:#f44;">Error loading proposals</div>';console.warn(e);}
+}
+async function daoVote(id,support){
+  try{
+    document.getElementById('dao-vote-status').innerHTML='<span style="color:#f0c040;">Voting...</span>';
+    const tx=await sendContractTx(DAO_ADDR,DAO_ABI,'vote',[id,support]);
+    await tx.wait();
+    document.getElementById('dao-vote-status').innerHTML='<span style="color:#4f4;">Vote cast!</span>';
+    refreshDaoProposals();
+  }catch(e){document.getElementById('dao-vote-status').innerHTML='<span style="color:#f44;">'+(e.reason||e.message||'error')+'</span>';}
+}
+async function daoExecute(id){
+  try{
+    document.getElementById('dao-vote-status').innerHTML='<span style="color:#f0c040;">Executing...</span>';
+    const tx=await sendContractTx(DAO_ADDR,DAO_ABI,'executeProposal',[id]);
+    await tx.wait();
+    document.getElementById('dao-vote-status').innerHTML='<span style="color:#4f4;">Proposal executed!</span>';
+    refreshDaoProposals();
+  }catch(e){document.getElementById('dao-vote-status').innerHTML='<span style="color:#f44;">'+(e.reason||e.message||'error')+'</span>';}
+}
+async function daoCreateProposal(){
+  try{
+    const pType=parseInt(document.getElementById('dao-prop-type').value);
+    const rawData=document.getElementById('dao-prop-data').value;
+    const data=rawData.startsWith('0x')?rawData:'0x'+rawData;
+    document.getElementById('dao-vote-status').innerHTML='<span style="color:#f0c040;">Creating proposal...</span>';
+    const tx=await sendContractTx(DAO_ADDR,DAO_ABI,'createProposal',[pType,data]);
+    await tx.wait();
+    document.getElementById('dao-vote-status').innerHTML='<span style="color:#4f4;">Proposal created!</span>';
+    refreshDaoProposals();
+  }catch(e){document.getElementById('dao-vote-status').innerHTML='<span style="color:#f44;">'+(e.reason||e.message||'error')+'</span>';}
+}
+async function refreshDaoProjects(){
+  if(!DAO_ADDR)return;
+  try{
+    const rpc=getReadProvider();
+    const dao=new ethers.Contract(DAO_ADDR,DAO_ABI,rpc);
+    const[count,treasury,lastDist]=await Promise.all([dao.projectCount(),dao.treasuryBalance(),dao.lastRewardDistribution()]);
+    document.getElementById('dao-treasury').textContent=parseFloat(ethers.formatEther(treasury)).toFixed(2);
+    const nextDist=Number(lastDist)+30*24*3600;
+    const now=Math.floor(Date.now()/1000);
+    document.getElementById('dao-next-dist').textContent=nextDist>now?Math.ceil((nextDist-now)/86400)+' days':'Available now!';
+    let html='';
+    for(let i=0;i<Number(count);i++){
+      const p=await dao.getProject(i);
+      if(!p[3])continue;
+      html+='<div class="dao-project"><span class="dp-name">'+p[0]+'</span><span class="dp-alloc">'+(Number(p[2])/100).toFixed(1)+'%</span><span style="color:#888;font-size:6px;">Received: '+parseFloat(ethers.formatEther(p[4])).toFixed(0)+' REALM</span></div>';
+    }
+    document.getElementById('dao-projects-list').innerHTML=html||'<div class="dao-info" style="color:#666;text-align:center;">No projects registered</div>';
+  }catch(e){console.warn('refreshDaoProjects:',e);}
+}
+async function daoDistributeInflation(){
+  try{
+    document.getElementById('dao-proj-status').innerHTML='<span style="color:#f0c040;">Distributing inflation...</span>';
+    const tx=await sendContractTx(DAO_ADDR,DAO_ABI,'distributeInflation',[]);
+    await tx.wait();
+    document.getElementById('dao-proj-status').innerHTML='<span style="color:#4f4;">Inflation distributed! (0.1% bounty received)</span>';
+    msg('DAO inflation distributed!','quest');
+    refreshDaoProjects();refreshDaoData();
+  }catch(e){document.getElementById('dao-proj-status').innerHTML='<span style="color:#f44;">'+(e.reason||e.message||'error')+'</span>';}
 }
 
 function tickSoftBoots(n){if(!G.player||!G.player.eq.boots)return;const bid=G.player.eq.boots;if(bid==='soft_boots'||bid==='firewalker_boots'){if(!G.player.softBootCharges||G.player.softBootCharges>14400)G.player.softBootCharges=14400;if(!G._sbLastTick)G._sbLastTick=n;if(n-G._sbLastTick>=2000){const ticks=Math.floor((n-G._sbLastTick)/2000);G._sbLastTick=n;G.player.softBootCharges=Math.max(0,G.player.softBootCharges-ticks);if(G.player.softBootCharges<=0){G.player.softBootCharges=0;G.player.eq.boots='worn_soft_boots';msg('Your '+ITEMS[bid].n+' have worn out!','system');updInv();}}}else{G._sbLastTick=0;}}
@@ -2464,7 +2754,7 @@ function setupInput(){
     if(G.editingHotkey){e.preventDefault();return;}
     G.keys[e.key]=true;
     if(e.key==='Enter'){const ci=document.getElementById('chat-in');if(document.activeElement===ci){const t=ci.value.trim();if(t){if(t==='/unstuck'){msg('Teleporting to surface...','system');G.player.hp=G.player.mhp;G.player.mp=G.player.mmp;G.target=null;switchFloor(0,950,800);msg('Returned to temple!','system');}else{msg(G.player.name+': '+t,'system');}ci.value='';}ci.blur();}else ci.focus();e.preventDefault();}
-    if(e.key==='Escape'){closeShop();closeSkills();closeHotkeys();document.getElementById('bless-ov').style.display='none';document.getElementById('prem-ov').style.display='none';document.getElementById('gold-ov').style.display='none';}
+    if(e.key==='Escape'){closeShop();closeSkills();closeHotkeys();document.getElementById('bless-ov').style.display='none';document.getElementById('prem-ov').style.display='none';document.getElementById('gold-ov').style.display='none';document.getElementById('dao-ov').style.display='none';}
     if(e.key==='m'||e.key==='M'){const mmw=document.getElementById('mm-wrap');G.mmap=!G.mmap;mmw.style.display=G.mmap?'block':'none';if(G.mmap)renderMM();}
     if(e.key==='k'||e.key==='K')openSkills();
     if(e.key==='h'||e.key==='H')openHotkeys();

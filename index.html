@@ -395,7 +395,8 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
 
 // ===== BASE CHAIN & CONTRACT CONFIG =====
 const BASE_CHAIN_ID='0x2105';
-const BASE_CHAIN={chainId:'0x2105',chainName:'Base',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:['https://mainnet.base.org'],blockExplorerUrls:['https://basescan.org']};
+const BASE_RPC='https://base-mainnet.g.alchemy.com/v2/2rxzAb3pSRGOv26opqwLo';
+const BASE_CHAIN={chainId:'0x2105',chainName:'Base',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:[BASE_RPC,'https://mainnet.base.org'],blockExplorerUrls:['https://basescan.org']};
 const REALM_TOKEN_ADDR='0xBA2cA14375b2cECA4f04350Bd014B375Bc014ad2';
 const GOLD_EXCHANGE_ADDR='0x87eeF242A5DF7Bc22FEA46F93186CA7180B777CD';
 const REALM_ABI=['function approve(address spender, uint256 amount) returns (bool)','function allowance(address owner, address spender) view returns (uint256)','function balanceOf(address account) view returns (uint256)','function decimals() view returns (uint8)'];
@@ -888,11 +889,11 @@ function previewBuyGold(){
   const goldAmount=val*1000;
   document.getElementById('gx-preview').innerHTML=val.toFixed(3)+' REALM &#8594; <b style="color:#f0c040;">'+Math.floor(goldAmount).toLocaleString()+'</b> Gold';
 }
+function getReadProvider(){return new ethers.JsonRpcProvider(BASE_RPC);}
 async function refreshGxBalances(){
   try{
-    const prov=activeProvider||window.ethereum;
-    if(!prov||!walletAddr)return;
-    const provider=new ethers.BrowserProvider(prov);
+    if(!walletAddr)return;
+    const provider=getReadProvider();
     const realm=new ethers.Contract(REALM_TOKEN_ADDR,REALM_ABI,provider);
     const bal=await realm.balanceOf(walletAddr);
     document.getElementById('gx-realm-bal').textContent=parseFloat(ethers.formatEther(bal)).toFixed(4);

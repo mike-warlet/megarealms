@@ -883,11 +883,13 @@ function switchGxTab(tab){
   document.getElementById('gx-buy-panel').style.display=tab==='buy'?'block':'none';
   document.getElementById('gx-sell-panel').style.display=tab==='sell'?'block':'none';
 }
+function fmtNum(n){return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function previewBuyGold(){
   const val=parseFloat(document.getElementById('gx-realm-input').value);
   if(!val||val<=0){document.getElementById('gx-preview').textContent='Enter REALM amount to see Gold preview';return;}
-  const goldAmount=val*1000;
-  document.getElementById('gx-preview').innerHTML=val.toFixed(3)+' REALM &#8594; <b style="color:#f0c040;">'+Math.floor(goldAmount).toLocaleString()+'</b> Gold';
+  const goldAmount=Math.floor(val*1000);
+  const realmStr=Number.isInteger(val)?val.toString():val.toFixed(3);
+  document.getElementById('gx-preview').innerHTML='<span style="color:#8af;font-size:9px;">'+realmStr+' $REALM</span> &#8594; <b style="color:#f0c040;font-size:10px;">'+fmtNum(goldAmount)+' Gold</b><br><span style="font-size:5px;color:#888;">(rate: 1 REALM = 1,000 Gold)</span>';
 }
 function getReadProvider(){return new ethers.JsonRpcProvider(BASE_RPC);}
 async function refreshGxBalances(){
@@ -900,18 +902,35 @@ async function refreshGxBalances(){
     if(G.player)document.getElementById('gx-gold-bal').textContent=G.player.gold.toLocaleString();
   }catch(e){console.warn('refreshGxBalances:',e);}
 }
+async function sendContractTx(contractAddr,abi,fnName,args){
+  const prov=activeProvider||window.ethereum;
+  const rpc=getReadProvider();
+  const browserProv=new ethers.BrowserProvider(prov);
+  const signer=await browserProv.getSigner();
+  const iface=new ethers.Interface(abi);
+  const data=iface.encodeFunctionData(fnName,args);
+  const[gasEst,feeData,nonce]=await Promise.all([
+    rpc.estimateGas({from:walletAddr,to:contractAddr,data:data}),
+    rpc.getFeeData(),
+    rpc.getTransactionCount(walletAddr)
+  ]);
+  const tx=await signer.sendTransaction({
+    to:contractAddr,data:data,
+    gasLimit:gasEst*130n/100n,
+    maxFeePerGas:feeData.maxFeePerGas,
+    maxPriorityFeePerGas:feeData.maxPriorityFeePerGas,
+    nonce:nonce
+  });
+  return tx;
+}
 async function approveRealm(){
   const val=parseFloat(document.getElementById('gx-realm-input').value);
   if(!val||val<=0){document.getElementById('gx-status').innerHTML='<span style="color:#f44;">Enter a valid REALM amount first</span>';return;}
   try{
-    const prov=activeProvider||window.ethereum;
-    const provider=new ethers.BrowserProvider(prov);
-    const signer=await provider.getSigner();
-    const realm=new ethers.Contract(REALM_TOKEN_ADDR,REALM_ABI,signer);
     const amount=ethers.parseEther(val.toString());
     document.getElementById('gx-status').innerHTML='<span style="color:#f0c040;">Approving $REALM... confirm in wallet</span>';
     document.getElementById('gx-approve-btn').disabled=true;
-    const tx=await realm.approve(GOLD_EXCHANGE_ADDR,amount);
+    const tx=await sendContractTx(REALM_TOKEN_ADDR,REALM_ABI,'approve',[GOLD_EXCHANGE_ADDR,amount]);
     document.getElementById('gx-status').innerHTML='<span style="color:#f0c040;">Waiting for confirmation...</span>';
     await tx.wait();
     gxApproved=true;
@@ -928,20 +947,16 @@ async function executeBuyGold(){
   const val=parseFloat(document.getElementById('gx-realm-input').value);
   if(!val||val<=0)return;
   try{
-    const prov=activeProvider||window.ethereum;
-    const provider=new ethers.BrowserProvider(prov);
-    const signer=await provider.getSigner();
-    const exchange=new ethers.Contract(GOLD_EXCHANGE_ADDR,EXCHANGE_ABI,signer);
     const amount=ethers.parseEther(val.toString());
     document.getElementById('gx-status').innerHTML='<span style="color:#f0c040;">Buying Gold... confirm in wallet</span>';
     document.getElementById('gx-buy-btn').disabled=true;
-    const tx=await exchange.buyGold(amount);
+    const tx=await sendContractTx(GOLD_EXCHANGE_ADDR,EXCHANGE_ABI,'buyGold',[amount]);
     document.getElementById('gx-status').innerHTML='<span style="color:#f0c040;">Waiting for confirmation...</span>';
     await tx.wait();
     const goldReceived=Math.floor(val*1000);
     if(G.player){G.player.gold+=goldReceived;triggerSave();}
-    document.getElementById('gx-status').innerHTML='<span style="color:#4f4;">Success! +'+goldReceived.toLocaleString()+' Gold credited</span>';
-    msg('+'+goldReceived.toLocaleString()+' Gold purchased with $REALM!','quest');
+    document.getElementById('gx-status').innerHTML='<span style="color:#4f4;">Success! +'+fmtNum(goldReceived)+' Gold credited</span>';
+    msg('+'+fmtNum(goldReceived)+' Gold purchased with $REALM!','quest');
     document.getElementById('gx-buy-btn').disabled=false;
     refreshGxBalances();
   }catch(e){

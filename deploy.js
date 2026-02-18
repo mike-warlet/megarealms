@@ -5,15 +5,10 @@ async function main() {
   console.log("Deploying com:", deployer.address);
   console.log("Balance:", hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), "ETH\n");
 
-  // 1. Deploy RealmToken ($REALM) — ERC-20
+  // 1. RealmToken ($REALM) — JA DEPLOYADO
+  const realmAddr = "0x8fccE8bfA62bf0251cf6a378A9FEF44C077F0480";
   console.log("=== 1. RealmToken ($REALM) ===");
-  const RealmToken = await hre.ethers.getContractFactory("RealmToken");
-  const realm = await RealmToken.deploy();
-  await realm.waitForDeployment();
-  const realmAddr = await realm.getAddress();
-  console.log("  RealmToken ($REALM):", realmAddr);
-  console.log("  Max Supply:", hre.ethers.formatEther(await realm.maxSupply()), "REALM");
-  console.log("  Treasury (deployer):", hre.ethers.formatEther(await realm.balanceOf(deployer.address)), "REALM");
+  console.log("  Ja deployado em:", realmAddr);
 
   // 2. Deploy GoldExchange (REALM <-> Gold)
   console.log("\n=== 2. GoldExchange ===");
@@ -84,9 +79,6 @@ async function main() {
   console.log("  GoldExchange:", exchangeAddr);
   console.log("  GameItems:", itemsAddr);
   console.log("  GameCharacter:", charsAddr);
-  console.log("\nProximo passo: verificar contratos no BaseScan");
-  console.log("  npx hardhat verify --network base", realmAddr);
-  console.log("  npx hardhat verify --network base", exchangeAddr, realmAddr, goldPerRealm);
 }
 
 main().catch((error) => {

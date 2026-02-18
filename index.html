@@ -208,12 +208,32 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
 .wallet-btn:hover{border-color:#f0c040;box-shadow:0 0 16px rgba(240,192,64,.15);}
 .wallet-btn .wb-icon{font-size:24px;}.wallet-btn .wb-name{font-size:10px;color:#f0c040;}.wallet-btn .wb-desc{font-size:6px;color:#777;margin-top:2px;}
 #login-status{font-size:7px;color:#888;margin-top:16px;min-height:20px;}
+#gold-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;justify-content:center;align-items:center;}
+#gold-p{background:#1a1a2a;border:2px solid #40c080;border-radius:6px;padding:16px;max-width:400px;width:90%;}
+#gold-p h3{font-size:10px;color:#40c080;margin-bottom:10px;text-align:center;}
+.gold-info{font-size:7px;color:#ccc;line-height:2;padding:4px 0;}
+.gold-info b{color:#40c080;}
+.gold-tabs{display:flex;gap:4px;margin-bottom:10px;}
+.gold-tab{flex:1;background:#112;border:1px solid #333;color:#888;font-family:inherit;font-size:7px;padding:6px;border-radius:4px 4px 0 0;cursor:pointer;text-align:center;}
+.gold-tab.active{background:#1a2a1a;border-color:#40c080;color:#40c080;}
+.gold-input-row{display:flex;align-items:center;gap:6px;margin:8px 0;}
+.gold-input-row input{flex:1;background:#112;border:1px solid #333;color:#fff;font-family:inherit;font-size:8px;padding:6px;border-radius:4px;outline:none;}
+.gold-input-row input:focus{border-color:#40c080;}
+.gold-preview{font-size:8px;color:#40c080;text-align:center;padding:6px;background:#112;border-radius:4px;margin:6px 0;}
+.gold-btn{display:block;width:100%;margin:6px 0;background:linear-gradient(135deg,#40c080,#20a060);color:#fff;border:2px solid #30b070;padding:8px;font-family:inherit;font-size:8px;border-radius:4px;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.4);}
+.gold-btn:hover{box-shadow:0 4px 16px rgba(64,192,128,.4);}
+.gold-btn:disabled{opacity:.4;cursor:not-allowed;}
+.gold-btn.approve{background:linear-gradient(135deg,#4080c0,#2060a0);border-color:#3070b0;}
+.gold-bal{display:flex;justify-content:space-between;font-size:7px;color:#999;padding:4px 0;border-top:1px solid #222;margin-top:6px;}
+.gold-bal b{color:#f0c040;}
+.gold-status{font-size:6px;color:#888;text-align:center;padding:4px;min-height:16px;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.1/ethers.umd.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
 <div id="terms-screen">
   <h1>MegaRealms</h1>
-  <p class="sub">On-Chain MMORPG on MegaETH</p>
+  <p class="sub">On-Chain MMORPG on Base</p>
   <div class="terms-box">
     <h2>Welcome to MegaRealms Beta</h2>
     <p>This project is currently in <b style="color:#f80;">BETA</b> and under active development. By proceeding, you acknowledge and accept the following terms:</p>
@@ -257,9 +277,13 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
     <span class="wb-icon">🐰</span>
     <div><div class="wb-name">Rabby Wallet</div><div class="wb-desc">Secure multi-chain wallet</div></div>
   </div>
+  <div class="wallet-btn" id="btn-basewallet">
+    <span class="wb-icon">🔵</span>
+    <div><div class="wb-name">Base Wallet</div><div class="wb-desc">Coinbase Wallet for Base</div></div>
+  </div>
   <div class="wallet-btn" id="btn-walletconnect">
     <span class="wb-icon">🔗</span>
-    <div><div class="wb-name">Other Wallet</div><div class="wb-desc">Any EVM-compatible wallet</div></div>
+    <div><div class="wb-name">WalletConnect</div><div class="wb-desc">Any EVM-compatible wallet</div></div>
   </div>
   <div id="login-status"></div>
   <div style="margin-top:20px;border-top:1px solid #333;padding-top:14px;">
@@ -271,7 +295,7 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
 </div>
 <div id="start-screen" style="display:none;">
   <h1>MegaRealms</h1>
-  <p class="sub">On-Chain MMORPG on MegaETH</p>
+  <p class="sub">On-Chain MMORPG on Base</p>
   <div id="wallet-info" style="font-size:6px;color:#4f4;margin-bottom:12px;"></div>
   <div id="char-list-view">
     <div style="font-size:9px;color:#c9a959;margin-bottom:10px;">Your Characters</div>
@@ -299,7 +323,7 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
     <div class="bg"><span class="bl">XP</span><div class="bc" style="width:80px"><div class="bf xp" id="xpb"></div><div class="bt" id="xpt">0%</div></div></div>
     <div class="sb">Lv <b id="lvt">1</b></div>
     <div class="sb">&#9733; <b id="glt">100</b></div>
-    <button id="buy-gold-btn" onclick="msg('$REALM token shop coming soon!','system');" style="background:linear-gradient(135deg,#40c080,#20a060);border:1px solid #30b070;color:#fff;font-family:inherit;font-size:5px;font-weight:bold;padding:3px 7px;border-radius:4px;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,0.4);box-shadow:0 1px 4px rgba(64,192,128,0.4);animation:realmGlow 2s ease-in-out infinite;">&#128176; BUY GOLD</button>
+    <button id="buy-gold-btn" onclick="openGoldExchange();" style="background:linear-gradient(135deg,#40c080,#20a060);border:1px solid #30b070;color:#fff;font-family:inherit;font-size:5px;font-weight:bold;padding:3px 7px;border-radius:4px;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,0.4);box-shadow:0 1px 4px rgba(64,192,128,0.4);animation:realmGlow 2s ease-in-out infinite;">&#128176; BUY GOLD</button>
     <button id="prem-buy-btn" onclick="openPremPanel()" style="background:linear-gradient(135deg,#f0c040,#d4a020);border:1px solid #e0b030;color:#1a1a10;font-family:inherit;font-size:5px;font-weight:bold;padding:3px 7px;border-radius:4px;cursor:pointer;text-shadow:0 1px 0 rgba(255,255,255,0.3);box-shadow:0 1px 4px rgba(240,192,64,0.4);animation:premGlow 2s ease-in-out infinite;">&#9733; PREMIUM</button>
     <div id="floor-ind" class="f0"><span class="fi-icon">&#9728;</span><div><b id="fl-name">Surface</b><div class="fi-name">Floor 0</div></div></div>
     <button id="wbtn">Connect Wallet</button><span id="prem-ind" class="free">FREE</span>
@@ -337,12 +361,67 @@ body{background:#111;color:#ccc;font-family:'Press Start 2P',monospace;overflow:
 <div class="hk-cfg" id="hk-ov"><div id="hk-panel"><h3>Configure Hotkeys (H)</h3><div id="hk-list"></div><button class="scl" id="hkcl">Close</button></div></div>
 <div id="bless-ov"><div id="bless-p"><h3>Blessings (Premium)</h3><div id="bless-list"></div><button class="scl" id="blcl">Close [ESC]</button></div></div>
 <div id="prem-ov"><div id="prem-p"><h3>Premium Account</h3><div id="prem-info"></div></div></div>
+<div id="gold-ov"><div id="gold-p">
+  <h3>&#128176; $REALM &#8596; Gold Exchange</h3>
+  <div class="gold-info" style="text-align:center;"><b>Rate:</b> 1 REALM = <span id="gx-rate">1,000</span> Gold</div>
+  <div class="gold-tabs">
+    <button class="gold-tab active" id="gx-tab-buy" onclick="switchGxTab('buy')">Buy Gold</button>
+    <button class="gold-tab" id="gx-tab-sell" onclick="switchGxTab('sell')">Sell Gold</button>
+  </div>
+  <div id="gx-buy-panel">
+    <div class="gold-input-row">
+      <input type="number" id="gx-realm-input" placeholder="REALM amount" step="0.001" min="0" oninput="previewBuyGold()">
+    </div>
+    <div class="gold-preview" id="gx-preview">Enter REALM amount to see Gold preview</div>
+    <button class="gold-btn approve" id="gx-approve-btn" onclick="approveRealm()">1. Approve $REALM</button>
+    <button class="gold-btn" id="gx-buy-btn" onclick="executeBuyGold()" disabled>2. Buy Gold</button>
+  </div>
+  <div id="gx-sell-panel" style="display:none;">
+    <div class="gold-info" style="text-align:center;color:#fa3;">Sell Gold (Gold &#8594; REALM) requires backend integration.<br>Coming soon!</div>
+  </div>
+  <div class="gold-bal">
+    <span>Your $REALM: <b id="gx-realm-bal">0.00</b></span>
+    <span>Your Gold: <b id="gx-gold-bal">0</b></span>
+  </div>
+  <div class="gold-status" id="gx-status"></div>
+  <button class="gold-btn" style="background:#333;border-color:#555;margin-top:4px;" onclick="closeGoldExchange()">Close</button>
+</div></div>
 <div id="mm-wrap"><div id="mm-zoom"><button id="mm-zin" title="Zoom In">+</button><button id="mm-zout" title="Zoom Out">-</button></div><canvas id="mm" width="300" height="240"></canvas></div>
 <div id="ctx-menu"><div class="ctx-header" id="ctx-title"></div><div id="ctx-opts"></div></div>
 <div id="floor-trans"><div class="ft-bg"></div><div class="ft-text" id="ft-text"></div><div class="ft-sub" id="ft-sub"></div></div>
 
 <script>
 'use strict';
+
+// ===== BASE CHAIN & CONTRACT CONFIG =====
+const BASE_CHAIN_ID='0x2105';
+const BASE_CHAIN={chainId:'0x2105',chainName:'Base',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:['https://mainnet.base.org'],blockExplorerUrls:['https://basescan.org']};
+const REALM_TOKEN_ADDR='0xBA2cA14375b2cECA4f04350Bd014B375Bc014ad2';
+const GOLD_EXCHANGE_ADDR='0x87eeF242A5DF7Bc22FEA46F93186CA7180B777CD';
+const REALM_ABI=['function approve(address spender, uint256 amount) returns (bool)','function allowance(address owner, address spender) view returns (uint256)','function balanceOf(address account) view returns (uint256)','function decimals() view returns (uint8)'];
+const EXCHANGE_ABI=['function buyGold(uint256 realmAmount)','function goldPerRealm() view returns (uint256)','function previewBuyGold(uint256 realmAmount) view returns (uint256)','function isPaused() view returns (bool)'];
+let activeProvider=null; // the selected wallet provider
+
+function getProvider(type){
+  const provs=window.ethereum?.providers||[window.ethereum].filter(Boolean);
+  if(!provs||!provs.length)return null;
+  if(type==='metamask')return provs.find(p=>p.isMetaMask&&!p.isRabby)||null;
+  if(type==='rabby')return provs.find(p=>p.isRabby)||null;
+  if(type==='base')return window.coinbaseWalletExtension||provs.find(p=>p.isCoinbaseWallet)||null;
+  return window.ethereum;
+}
+
+async function ensureBaseNetwork(provider){
+  if(!provider)return;
+  try{
+    await provider.request({method:'wallet_switchEthereumChain',params:[{chainId:BASE_CHAIN_ID}]});
+  }catch(err){
+    if(err.code===4902||err.code===-32603){
+      await provider.request({method:'wallet_addEthereumChain',params:[BASE_CHAIN]});
+    }else throw err;
+  }
+}
+
 // Anti-exploit: integrity hash
 function _hash(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return h;}
 function _integrityCheck(){
@@ -783,6 +862,94 @@ function openBlessShop(){if(!isPrem()){msg('Blessings require Premium Account!',
 function updBlessList(){const c=document.getElementById('bless-list');if(!c)return;c.innerHTML='';BLESSINGS.forEach((b,i)=>{const owned=G.player.blessings&&G.player.blessings.includes(i);const d=document.createElement('div');d.className='bless-item'+(owned?' owned':'');d.innerHTML='<span class="bn">'+(owned?'&#10003; ':'')+b+'</span><span class="bp">'+BLESSING_COST+'g</span>'+(owned?'':'<button onclick="buyBlessing('+i+')">Buy</button>');c.appendChild(d);});}
 function buyBlessing(idx){const p=G.player;if(!isPrem()){msg('Blessings require Premium Account!','system');return;}if(!p.blessings)p.blessings=[];if(p.blessings.includes(idx)){msg('You already have this blessing!','system');return;}if(p.gold<BLESSING_COST){msg('Not enough gold! Need '+BLESSING_COST+'g.','system');return;}const oldGold=p.gold;p.gold-=BLESSING_COST;p.blessings.push(idx);msg('Received blessing: '+BLESSINGS[idx]+'!','quest');updBlessList();triggerSave();sendAction('buy_blessing', {blessingIdx: idx}).then(r => { if(!r) { p.gold=oldGold; p.blessings.pop(); updBlessList(); msg('Blessing purchase failed - reverted','system'); } else { applyServerState(r); } });}
 function openPremPanel(){document.getElementById('prem-ov').style.display='flex';const c=document.getElementById('prem-info');if(!c)return;if(isPrem()){const days=Math.ceil((G.player.premium.expiry-Date.now())/(1000*60*60*24));c.innerHTML='<div class="prem-info"><b>Status:</b> Active &#9733;</div><div class="prem-info"><b>Expires in:</b> '+days+' days</div><div class="prem-info"><b>Benefits:</b> Soft Boots, Blessings, Exclusive Areas, Premium Temple, Faster Regen, Bonus XP</div><button class="scl" onclick="document.getElementById(\'prem-ov\').style.display=\'none\'">Close</button>';}else{c.innerHTML='<div class="prem-info"><b>Status:</b> Free Account</div><div class="prem-info"><b>Cost:</b> 50,000 gold (30 days)</div><div class="prem-info"><b>Benefits:</b></div><div class="prem-info">&#9733; Soft Boots & Firewalker Boots</div><div class="prem-info">&#9733; Blessings System (reduce death penalty)</div><div class="prem-info">&#9733; Demon Realm, Hellfire & Abyss access</div><div class="prem-info">&#9733; Premium Sanctuary (exclusive temple)</div><div class="prem-info">&#9733; 50% faster HP/MP regen</div><div class="prem-info">&#9733; 15% bonus XP</div><button class="prem-buy" onclick="buyPremium();openPremPanel();">Buy Premium (50,000g)</button><button class="scl" onclick="document.getElementById(\'prem-ov\').style.display=\'none\'">Close</button>';}}
+// ===== GOLD EXCHANGE (BUY GOLD) =====
+let gxApproved=false;
+function openGoldExchange(){
+  if(!walletAddr){msg('Connect your wallet first!','system');return;}
+  document.getElementById('gold-ov').style.display='flex';
+  document.getElementById('gx-realm-input').value='';
+  document.getElementById('gx-preview').textContent='Enter REALM amount to see Gold preview';
+  document.getElementById('gx-status').textContent='';
+  document.getElementById('gx-buy-btn').disabled=true;
+  gxApproved=false;
+  switchGxTab('buy');
+  refreshGxBalances();
+}
+function closeGoldExchange(){document.getElementById('gold-ov').style.display='none';}
+function switchGxTab(tab){
+  document.getElementById('gx-tab-buy').className='gold-tab'+(tab==='buy'?' active':'');
+  document.getElementById('gx-tab-sell').className='gold-tab'+(tab==='sell'?' active':'');
+  document.getElementById('gx-buy-panel').style.display=tab==='buy'?'block':'none';
+  document.getElementById('gx-sell-panel').style.display=tab==='sell'?'block':'none';
+}
+function previewBuyGold(){
+  const val=parseFloat(document.getElementById('gx-realm-input').value);
+  if(!val||val<=0){document.getElementById('gx-preview').textContent='Enter REALM amount to see Gold preview';return;}
+  const goldAmount=val*1000;
+  document.getElementById('gx-preview').innerHTML=val.toFixed(3)+' REALM &#8594; <b style="color:#f0c040;">'+Math.floor(goldAmount).toLocaleString()+'</b> Gold';
+}
+async function refreshGxBalances(){
+  try{
+    const prov=activeProvider||window.ethereum;
+    if(!prov||!walletAddr)return;
+    const provider=new ethers.BrowserProvider(prov);
+    const realm=new ethers.Contract(REALM_TOKEN_ADDR,REALM_ABI,provider);
+    const bal=await realm.balanceOf(walletAddr);
+    document.getElementById('gx-realm-bal').textContent=parseFloat(ethers.formatEther(bal)).toFixed(4);
+    if(G.player)document.getElementById('gx-gold-bal').textContent=G.player.gold.toLocaleString();
+  }catch(e){console.warn('refreshGxBalances:',e);}
+}
+async function approveRealm(){
+  const val=parseFloat(document.getElementById('gx-realm-input').value);
+  if(!val||val<=0){document.getElementById('gx-status').innerHTML='<span style="color:#f44;">Enter a valid REALM amount first</span>';return;}
+  try{
+    const prov=activeProvider||window.ethereum;
+    const provider=new ethers.BrowserProvider(prov);
+    const signer=await provider.getSigner();
+    const realm=new ethers.Contract(REALM_TOKEN_ADDR,REALM_ABI,signer);
+    const amount=ethers.parseEther(val.toString());
+    document.getElementById('gx-status').innerHTML='<span style="color:#f0c040;">Approving $REALM... confirm in wallet</span>';
+    document.getElementById('gx-approve-btn').disabled=true;
+    const tx=await realm.approve(GOLD_EXCHANGE_ADDR,amount);
+    document.getElementById('gx-status').innerHTML='<span style="color:#f0c040;">Waiting for confirmation...</span>';
+    await tx.wait();
+    gxApproved=true;
+    document.getElementById('gx-status').innerHTML='<span style="color:#4f4;">Approved! Now click Buy Gold</span>';
+    document.getElementById('gx-buy-btn').disabled=false;
+    document.getElementById('gx-approve-btn').disabled=false;
+  }catch(e){
+    console.warn('approve error:',e);
+    document.getElementById('gx-status').innerHTML='<span style="color:#f44;">Approval failed: '+(e.reason||e.message||'unknown')+'</span>';
+    document.getElementById('gx-approve-btn').disabled=false;
+  }
+}
+async function executeBuyGold(){
+  const val=parseFloat(document.getElementById('gx-realm-input').value);
+  if(!val||val<=0)return;
+  try{
+    const prov=activeProvider||window.ethereum;
+    const provider=new ethers.BrowserProvider(prov);
+    const signer=await provider.getSigner();
+    const exchange=new ethers.Contract(GOLD_EXCHANGE_ADDR,EXCHANGE_ABI,signer);
+    const amount=ethers.parseEther(val.toString());
+    document.getElementById('gx-status').innerHTML='<span style="color:#f0c040;">Buying Gold... confirm in wallet</span>';
+    document.getElementById('gx-buy-btn').disabled=true;
+    const tx=await exchange.buyGold(amount);
+    document.getElementById('gx-status').innerHTML='<span style="color:#f0c040;">Waiting for confirmation...</span>';
+    await tx.wait();
+    const goldReceived=Math.floor(val*1000);
+    if(G.player){G.player.gold+=goldReceived;triggerSave();}
+    document.getElementById('gx-status').innerHTML='<span style="color:#4f4;">Success! +'+goldReceived.toLocaleString()+' Gold credited</span>';
+    msg('+'+goldReceived.toLocaleString()+' Gold purchased with $REALM!','quest');
+    document.getElementById('gx-buy-btn').disabled=false;
+    refreshGxBalances();
+  }catch(e){
+    console.warn('buyGold error:',e);
+    document.getElementById('gx-status').innerHTML='<span style="color:#f44;">Transaction failed: '+(e.reason||e.message||'unknown')+'</span>';
+    document.getElementById('gx-buy-btn').disabled=false;
+  }
+}
+
 function tickSoftBoots(n){if(!G.player||!G.player.eq.boots)return;const bid=G.player.eq.boots;if(bid==='soft_boots'||bid==='firewalker_boots'){if(!G.player.softBootCharges||G.player.softBootCharges>14400)G.player.softBootCharges=14400;if(!G._sbLastTick)G._sbLastTick=n;if(n-G._sbLastTick>=2000){const ticks=Math.floor((n-G._sbLastTick)/2000);G._sbLastTick=n;G.player.softBootCharges=Math.max(0,G.player.softBootCharges-ticks);if(G.player.softBootCharges<=0){G.player.softBootCharges=0;G.player.eq.boots='worn_soft_boots';msg('Your '+ITEMS[bid].n+' have worn out!','system');updInv();}}}else{G._sbLastTick=0;}}
 // PART C: GAME CLASSES & MAP GENERATION
 // ========================================
@@ -2281,7 +2448,7 @@ function setupInput(){
     if(G.editingHotkey){e.preventDefault();return;}
     G.keys[e.key]=true;
     if(e.key==='Enter'){const ci=document.getElementById('chat-in');if(document.activeElement===ci){const t=ci.value.trim();if(t){if(t==='/unstuck'){msg('Teleporting to surface...','system');G.player.hp=G.player.mhp;G.player.mp=G.player.mmp;G.target=null;switchFloor(0,950,800);msg('Returned to temple!','system');}else{msg(G.player.name+': '+t,'system');}ci.value='';}ci.blur();}else ci.focus();e.preventDefault();}
-    if(e.key==='Escape'){closeShop();closeSkills();closeHotkeys();document.getElementById('bless-ov').style.display='none';document.getElementById('prem-ov').style.display='none';}
+    if(e.key==='Escape'){closeShop();closeSkills();closeHotkeys();document.getElementById('bless-ov').style.display='none';document.getElementById('prem-ov').style.display='none';document.getElementById('gold-ov').style.display='none';}
     if(e.key==='m'||e.key==='M'){const mmw=document.getElementById('mm-wrap');G.mmap=!G.mmap;mmw.style.display=G.mmap?'block':'none';if(G.mmap)renderMM();}
     if(e.key==='k'||e.key==='K')openSkills();
     if(e.key==='h'||e.key==='H')openHotkeys();
@@ -2595,7 +2762,8 @@ async function backendAuth(wallet){
     const nonceData=await api.getNonce(wallet);
     if(!nonceData)return false;
     const message='Sign in to MegaRealms\nNonce: '+nonceData.nonce;
-    const signature=await window.ethereum.request({method:'personal_sign',params:[message,wallet]});
+    const prov=activeProvider||window.ethereum;
+    const signature=await prov.request({method:'personal_sign',params:[message,wallet]});
     const result=await api.verifySignature(wallet,signature,nonceData.nonceId);
     if(result&&result.token){
       sessionToken=result.token;
@@ -2896,15 +3064,23 @@ function getSaveKeyForWallet(addr){
   return 'megarealms_'+addr.toLowerCase()+'_save_';
 }
 
-async function loginWithWallet(){
-  if(typeof window.ethereum==='undefined'){
-    document.getElementById('login-status').innerHTML='<span style="color:#f44;">No wallet detected! Please install MetaMask or Rabby.</span>';
+async function loginWithWallet(walletType){
+  const provider=getProvider(walletType);
+  if(!provider){
+    const names={metamask:'MetaMask',rabby:'Rabby Wallet',base:'Base Wallet (Coinbase Wallet)'};
+    document.getElementById('login-status').innerHTML='<span style="color:#f44;">'+(names[walletType]||'Wallet')+' not detected! Please install it.</span>';
     return null;
   }
+  activeProvider=provider;
   try{
     document.getElementById('login-status').innerHTML='<span style="color:#f0c040;">Connecting wallet...</span>';
-    const accs=await window.ethereum.request({method:'eth_requestAccounts'});
+    const accs=await provider.request({method:'eth_requestAccounts'});
     walletAddr=accs[0];
+
+    // Force Base network
+    document.getElementById('login-status').innerHTML='<span style="color:#f0c040;">Switching to Base network...</span>';
+    await ensureBaseNetwork(provider);
+
     SAVE_KEY=getSaveKeyForWallet(walletAddr);
     migrateOldSaves();
     // Backend auth (sign message for persistent saves)
@@ -2921,7 +3097,7 @@ async function loginWithWallet(){
     const shortAddr=walletAddr.slice(0,6)+'...'+walletAddr.slice(-4);
     wbtn.textContent=shortAddr;
     wbtn.style.borderColor=authOk?'#4f4':'#fa3';
-    document.getElementById('wallet-info').innerHTML='Connected: <b style="color:#f0c040;">'+shortAddr+'</b>'+(authOk?' <span style="color:#4f4;font-size:6px;">\u2601 Synced</span>':' <span style="color:#fa3;font-size:6px;">Local only</span>');
+    document.getElementById('wallet-info').innerHTML='Connected: <b style="color:#f0c040;">'+shortAddr+'</b> <span style="color:#40c080;font-size:5px;">Base</span>'+(authOk?' <span style="color:#4f4;font-size:6px;">\u2601 Synced</span>':' <span style="color:#fa3;font-size:6px;">Local only</span>');
     // Load character list from backend if authenticated
     if(sessionToken){
       try{
@@ -2934,6 +3110,7 @@ async function loginWithWallet(){
     renderSaveSlots();
     return walletAddr;
   }catch(e){
+    console.warn('Wallet connection error:',e);
     document.getElementById('login-status').innerHTML='<span style="color:#f44;">Connection refused. Please try again.</span>';
     return null;
   }
@@ -3116,9 +3293,10 @@ document.getElementById('btn-agree').addEventListener('click',function(){
   document.getElementById('terms-screen').style.display='none';
   document.getElementById('login-screen').style.display='block';
 });
-document.getElementById('btn-metamask').addEventListener('click',loginWithWallet);
-document.getElementById('btn-rabby').addEventListener('click',loginWithWallet);
-document.getElementById('btn-walletconnect').addEventListener('click',loginWithWallet);
+document.getElementById('btn-metamask').addEventListener('click',()=>loginWithWallet('metamask'));
+document.getElementById('btn-rabby').addEventListener('click',()=>loginWithWallet('rabby'));
+document.getElementById('btn-basewallet').addEventListener('click',()=>loginWithWallet('base'));
+document.getElementById('btn-walletconnect').addEventListener('click',()=>loginWithWallet('walletconnect'));
 
 // Check if terms already accepted
 if(localStorage.getItem('megarealms_terms_accepted')==='1'){

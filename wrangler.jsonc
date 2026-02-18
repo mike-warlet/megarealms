@@ -10,6 +10,10 @@
       {
         "name": "GAME_ROOM",
         "class_name": "GameRoom"
+      },
+      {
+        "name": "PLAYER_STATE",
+        "class_name": "PlayerState"
       }
     ]
   },
@@ -17,6 +21,10 @@
     {
       "tag": "v1",
       "new_classes": ["GameRoom"]
+    },
+    {
+      "tag": "v2",
+      "new_classes": ["PlayerState"]
     }
   ]
 }

@@ -778,10 +778,10 @@ const BLESSING_COST=10000;
 function isPrem(){return G.player&&G.player.premium&&G.player.premium.active&&G.player.premium.expiry>Date.now();}
 function checkPremExpiry(){if(!G.player||!G.player.premium)return;if(G.player.premium.active&&G.player.premium.expiry<=Date.now()){G.player.premium.active=false;msg('Your Premium Account has expired!','system');updPremInd();}}
 function updPremInd(){const el=document.getElementById('prem-ind');if(!el)return;if(isPrem()){const days=Math.ceil((G.player.premium.expiry-Date.now())/(1000*60*60*24));el.className='active';el.textContent='PREMIUM ('+days+'d)';el.title='Premium Account - '+days+' days remaining';}else{el.className='free';el.textContent='FREE';el.title='Free Account';}}
-function buyPremium(){const p=G.player;if(isPrem()){msg('You already have Premium Account!','system');return;}if(p.gold<50000){msg('Need 50,000 gold for Premium! You have '+p.gold+'g.','system');return;}p.gold-=50000;p.premium={active:true,expiry:Date.now()+30*24*60*60*1000,addr:typeof walletAddr!=='undefined'?walletAddr:''};msg('Premium Account activated for 30 days!','level');updPremInd();triggerSave();}
+function buyPremium(){const p=G.player;if(isPrem()){msg('You already have Premium Account!','system');return;}if(p.gold<50000){msg('Need 50,000 gold for Premium! You have '+p.gold+'g.','system');return;}const oldGold=p.gold,oldPrem=p.premium;p.gold-=50000;p.premium={active:true,expiry:Date.now()+30*24*60*60*1000,addr:typeof walletAddr!=='undefined'?walletAddr:''};msg('Premium Account activated for 30 days!','level');updPremInd();triggerSave();sendAction('buy_premium').then(r => { if(!r) { p.gold=oldGold; p.premium=oldPrem; updPremInd(); msg('Premium purchase failed - reverted','system'); } else { applyServerState(r); } });}
 function openBlessShop(){if(!isPrem()){msg('Blessings require Premium Account!','system');return;}document.getElementById('bless-ov').style.display='flex';updBlessList();}
 function updBlessList(){const c=document.getElementById('bless-list');if(!c)return;c.innerHTML='';BLESSINGS.forEach((b,i)=>{const owned=G.player.blessings&&G.player.blessings.includes(i);const d=document.createElement('div');d.className='bless-item'+(owned?' owned':'');d.innerHTML='<span class="bn">'+(owned?'&#10003; ':'')+b+'</span><span class="bp">'+BLESSING_COST+'g</span>'+(owned?'':'<button onclick="buyBlessing('+i+')">Buy</button>');c.appendChild(d);});}
-function buyBlessing(idx){const p=G.player;if(!isPrem()){msg('Blessings require Premium Account!','system');return;}if(!p.blessings)p.blessings=[];if(p.blessings.includes(idx)){msg('You already have this blessing!','system');return;}if(p.gold<BLESSING_COST){msg('Not enough gold! Need '+BLESSING_COST+'g.','system');return;}p.gold-=BLESSING_COST;p.blessings.push(idx);msg('Received blessing: '+BLESSINGS[idx]+'!','quest');updBlessList();triggerSave();}
+function buyBlessing(idx){const p=G.player;if(!isPrem()){msg('Blessings require Premium Account!','system');return;}if(!p.blessings)p.blessings=[];if(p.blessings.includes(idx)){msg('You already have this blessing!','system');return;}if(p.gold<BLESSING_COST){msg('Not enough gold! Need '+BLESSING_COST+'g.','system');return;}const oldGold=p.gold;p.gold-=BLESSING_COST;p.blessings.push(idx);msg('Received blessing: '+BLESSINGS[idx]+'!','quest');updBlessList();triggerSave();sendAction('buy_blessing', {blessingIdx: idx}).then(r => { if(!r) { p.gold=oldGold; p.blessings.pop(); updBlessList(); msg('Blessing purchase failed - reverted','system'); } else { applyServerState(r); } });}
 function openPremPanel(){document.getElementById('prem-ov').style.display='flex';const c=document.getElementById('prem-info');if(!c)return;if(isPrem()){const days=Math.ceil((G.player.premium.expiry-Date.now())/(1000*60*60*24));c.innerHTML='<div class="prem-info"><b>Status:</b> Active &#9733;</div><div class="prem-info"><b>Expires in:</b> '+days+' days</div><div class="prem-info"><b>Benefits:</b> Soft Boots, Blessings, Exclusive Areas, Premium Temple, Faster Regen, Bonus XP</div><button class="scl" onclick="document.getElementById(\'prem-ov\').style.display=\'none\'">Close</button>';}else{c.innerHTML='<div class="prem-info"><b>Status:</b> Free Account</div><div class="prem-info"><b>Cost:</b> 50,000 gold (30 days)</div><div class="prem-info"><b>Benefits:</b></div><div class="prem-info">&#9733; Soft Boots & Firewalker Boots</div><div class="prem-info">&#9733; Blessings System (reduce death penalty)</div><div class="prem-info">&#9733; Demon Realm, Hellfire & Abyss access</div><div class="prem-info">&#9733; Premium Sanctuary (exclusive temple)</div><div class="prem-info">&#9733; 50% faster HP/MP regen</div><div class="prem-info">&#9733; 15% bonus XP</div><button class="prem-buy" onclick="buyPremium();openPremPanel();">Buy Premium (50,000g)</button><button class="scl" onclick="document.getElementById(\'prem-ov\').style.display=\'none\'">Close</button>';}}
 function tickSoftBoots(n){if(!G.player||!G.player.eq.boots)return;const bid=G.player.eq.boots;if(bid==='soft_boots'||bid==='firewalker_boots'){if(!G.player.softBootCharges||G.player.softBootCharges>14400)G.player.softBootCharges=14400;if(!G._sbLastTick)G._sbLastTick=n;if(n-G._sbLastTick>=2000){const ticks=Math.floor((n-G._sbLastTick)/2000);G._sbLastTick=n;G.player.softBootCharges=Math.max(0,G.player.softBootCharges-ticks);if(G.player.softBootCharges<=0){G.player.softBootCharges=0;G.player.eq.boots='worn_soft_boots';msg('Your '+ITEMS[bid].n+' have worn out!','system');updInv();}}}else{G._sbLastTick=0;}}
 // PART C: GAME CLASSES & MAP GENERATION
@@ -1213,6 +1213,7 @@ function atkTgt(){
   if(m.hp<=0){m.alive=false;m.rt=performance.now()+m.respawnTime();
     p.xp+=M.xp;msg(`${M.n} derrotado! +${M.xp} XP`,'combat');
     p.lvUp();dropLoot(m);G.kills[m.t]=(G.kills[m.t]||0)+1;checkQuests();
+    sendAction('attack', {tid: m.t}).then(r => { if(r) applyServerState(r); });
   }
 }
 
@@ -1249,7 +1250,8 @@ function castSpell(idx){
       G.target.hp-=dmg;floatText(G.target.x,G.target.y,'-'+dmg,'#f8f');msg(`${sp.n}: -${dmg}`,'spell');
       const mgXp=Math.max(1,Math.floor(sp.mana/10));p.skillXp.magic+=mgXp;const mgMult=getSkillMult(p.voc,'magic');if(p.skillXp.magic>=Math.floor(p.skills.magic*8*mgMult)){p.skillXp.magic=0;p.skills.magic++;msg(`Magic increased to ${p.skills.magic}!`,'level');}updSkills();
       if(G.target.hp<=0){G.target.alive=false;G.target.rt=performance.now()+G.target.respawnTime();
-        const premXp=isPrem()?Math.floor(M.xp*1.15):M.xp;p.xp+=premXp;msg(`${M.n} derrotado! +${M.xp} XP`,'combat');p.lvUp();dropLoot(G.target);G.kills[G.target.t]=(G.kills[G.target.t]||0)+1;checkQuests();}
+        const premXp=isPrem()?Math.floor(M.xp*1.15):M.xp;p.xp+=premXp;msg(`${M.n} derrotado! +${M.xp} XP`,'combat');p.lvUp();dropLoot(G.target);G.kills[G.target.t]=(G.kills[G.target.t]||0)+1;checkQuests();
+        sendAction('spell', {sid: idx, tid: G.target ? G.target.t : null}).then(r => { if(r) applyServerState(r); });}
     }else msg('Too far!','system');
   }
 }
@@ -1288,6 +1290,7 @@ function checkQuests(){
       q.done=true;q.doneAt=Date.now();p.xp+=q.xp;p.gold+=q.gold;
       if(q.type==='collect'){const idx=p.inv.findIndex(i=>i.id===q.target);if(idx>=0)p.rmItem(idx,q.need);}
       msg(`QUEST COMPLETA: ${q.n}! +${q.xp}XP +${q.gold}g`,'quest');p.lvUp();triggerSave();
+      sendAction('quest_check').then(r => { if(r) applyServerState(r); });
     }
   });
   updQuests();
@@ -1334,8 +1337,8 @@ function openShop(npc){
   document.getElementById('shop-ov').style.display='flex';
 }
 function closeShop(){G.shop=0;document.getElementById('shop-ov').style.display='none';}
-function buyItem(id){const it=ITEMS[id];const p=G.player;if(it.premium&&!isPrem()){msg('This item requires Premium Account!','system');return;}if(it.vocs&&!it.vocs.includes(p.voc)){msg('Your vocation cannot use this item!','system');return;}if(p.gold<it.p){msg('Not enough gold!','system');return;}if(!p.addItem(id)){msg('Inventory full!','system');return;}p.gold-=it.p;if(it.t==='training'&&it.charges){const added=p.inv[p.inv.length-1];if(added&&added.id===id)added.charges=it.charges;}msg(`Bought ${it.n}`,'system');updInv();}
-function sellItem(idx){const p=G.player;const it=p.inv[idx];if(!it)return;const d=ITEMS[it.id];if(d.premium&&!isPrem()){msg('Cannot sell premium items without Premium Account!','system');return;}const price=Math.floor(d.p/3);if(!G._sellCd){G._sellCd=0;}if(Date.now()-G._sellCd<500){msg('Please wait before selling again!','system');return;}G._sellCd=Date.now();p.gold+=price;msg(`Sold ${d.n} for ${price}g`,'loot');p.rmItem(idx,1);updInv();}
+function buyItem(id){const it=ITEMS[id];const p=G.player;if(it.premium&&!isPrem()){msg('This item requires Premium Account!','system');return;}if(it.vocs&&!it.vocs.includes(p.voc)){msg('Your vocation cannot use this item!','system');return;}if(p.gold<it.p){msg('Not enough gold!','system');return;}if(!p.addItem(id)){msg('Inventory full!','system');return;}const oldGold=p.gold;p.gold-=it.p;if(it.t==='training'&&it.charges){const added=p.inv[p.inv.length-1];if(added&&added.id===id)added.charges=it.charges;}msg(`Bought ${it.n}`,'system');updInv();sendAction('buy', {itemId: id}).then(r => { if(!r) { p.gold=oldGold; updInv(); msg('Purchase failed - reverted','system'); } else { applyServerState(r); } });}
+function sellItem(idx){const p=G.player;const it=p.inv[idx];if(!it)return;const d=ITEMS[it.id];if(d.premium&&!isPrem()){msg('Cannot sell premium items without Premium Account!','system');return;}const price=Math.floor(d.p/3);if(!G._sellCd){G._sellCd=0;}if(Date.now()-G._sellCd<500){msg('Please wait before selling again!','system');return;}G._sellCd=Date.now();const oldGold=p.gold;p.gold+=price;msg(`Sold ${d.n} for ${price}g`,'loot');p.rmItem(idx,1);updInv();sendAction('sell', {itemId: it.id}).then(r => { if(!r) { p.gold=oldGold; updInv(); msg('Sale failed - reverted','system'); } else { applyServerState(r); } });}
 function openSkills(){
   document.getElementById('skill-ov').style.display='flex';
   const list=document.getElementById('skill-list');list.innerHTML='';
@@ -1434,10 +1437,12 @@ function djinnSell(idx,qty){
   const sellQty=Math.min(qty,it.q);
   const total=price*sellQty;
   if(p.gold+total>99999999){msg('Gold limit reached!','system');return;}
+  const oldGold=p.gold;
   p.gold+=total;
   msg('Sold '+sellQty+'x '+ITEMS[it.id].n+' for '+total+'g to Blue Djinn','loot');
   p.rmItem(idx,sellQty);
   updInv();triggerSave();
+  sendAction('djinn_sell', {itemId: it.id, qty: sellQty}).then(r => { if(!r) { p.gold=oldGold; updInv(); msg('Sale failed - reverted','system'); } else { applyServerState(r); } });
   openDjinnShop();
 }
 function closeDjinnShop(){const ov=document.getElementById('djinn-ov');if(ov)ov.style.display='none';}
@@ -1455,9 +1460,11 @@ function djinnSellAll(){
     p.rmItem(s.idx,s.qty);
   }
   if(totalGold>0){
+    const oldGold=p.gold;
     p.gold+=totalGold;
     msg('Sold '+totalItems+' items for '+totalGold+'g to Blue Djinn','loot');
     updInv();triggerSave();
+    sendAction('djinn_sell_all').then(r => { if(!r) { p.gold=oldGold; updInv(); msg('Sale failed - reverted','system'); } else { applyServerState(r); } });
   }
   openDjinnShop();
 }
@@ -2341,6 +2348,65 @@ function dynamicSpawn(n){
   rebuildMonGrid();
 }
 
+// SERVER-SIDE AUTHORITATIVE ACTIONS
+async function sendAction(type, data={}) {
+  const charId = G.player && G.player._charId;
+  if (!charId || !sessionToken) return null;
+  try {
+    const res = await fetch(location.origin + '/player/action', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+sessionToken},
+      body: JSON.stringify({charId, action: {type, ...data}})
+    });
+    if (!res.ok) return null;
+    const result = await res.json();
+    if (result.success) return result.result;
+    if (result.error) msg(result.error, 'system');
+    return null;
+  } catch(e) { console.warn('sendAction failed:', e); return null; }
+}
+
+async function loadPlayerState(charId) {
+  if (!sessionToken) return null;
+  try {
+    const res = await fetch(location.origin + '/player/load', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+sessionToken},
+      body: JSON.stringify({charId, data: null})
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch(e) { return null; }
+}
+
+function applyServerState(result) {
+  if (!result || !G.player) return;
+  const p = G.player;
+  if (result.gold !== undefined) p.gold = result.gold;
+  if (result.xp !== undefined) p.xp = result.xp;
+  if (result.lv !== undefined && result.lv > p.lv) {
+    p.lv = result.lv;
+    if (result.mhp) p.mhp = result.mhp;
+    if (result.mmp) p.mmp = result.mmp;
+    if (result.batk) p.batk = result.batk;
+    if (result.bdef) p.bdef = result.bdef;
+    p.hp = p.mhp; p.mp = p.mmp;
+    msg('LEVEL UP! Level ' + p.lv + '!', 'level');
+  }
+  if (result.hp !== undefined) p.hp = Math.min(result.hp, p.mhp);
+  if (result.mp !== undefined) p.mp = Math.min(result.mp, p.mmp);
+  if (result.inv) p.inv = result.inv;
+  if (result.eq) p.eq = result.eq;
+  if (result.quests) G.quests = result.quests;
+  if (result.kills) G.kills = result.kills;
+  if (result.spells) { p.spells = result.spells; updSpells(); }
+  if (result.premium) p.premium = result.premium;
+  if (result.blessings) p.blessings = result.blessings;
+  if (result.skills) p.skills = result.skills;
+  if (result.skillXp) p.skillXp = result.skillXp;
+  updInv();
+}
+
 // MULTIPLAYER WEBSOCKET
 let ws=null;
 let wsMyId=null;
@@ -2415,6 +2481,11 @@ function wsSwitchFloor(newFloor){
 
 // Heartbeat every 5s
 setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({t:'p'}));},5000);
+// Sync state with server every 60 seconds
+setInterval(async () => {
+  if (!G.player || !G.player._charId || !sessionToken) return;
+  const r = await sendAction('save');
+}, 60000);
 
 function updatePlayerList(){
   const cont=document.getElementById('player-panel');if(!cont||!G.player)return;
@@ -2753,6 +2824,12 @@ function initFromSave(data){
   msg('Welcome back, '+p.name+'!','system');msg('Anti-cheat system active. Exploits are logged.','system');wsConnect(G.floor);
   if(p.name==='Mike Kina'&&!p._devGold){p.gold+=150000;p._devGold=true;msg('Dev bonus: +150,000 gold granted!','level');triggerSave();}
   msg(`Level ${p.lv} | ${p.gold} gold`,'system');
+  loadPlayerState(p._charId).then(r => {
+    if (r && r.player) {
+      applyServerState(r.player);
+      msg('State synced with server', 'system');
+    }
+  });
   requestAnimationFrame(loop);
 }
 

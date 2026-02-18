@@ -6,9 +6,10 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title Realm Token ($REALM)
+ * @title Realm Token ($REALM) v2
  * @notice Token ERC-20 do ecossistema MegaRealms
  * @dev Deploy na Base L2 (Coinbase). Supply com cap + inflacao controlada para staking/DAO.
+ *      v2: Corrigido limite de inflacao, minter limits, mint event, validacoes.
  */
 contract RealmToken is ERC20, ERC20Burnable, Ownable {
 
@@ -24,12 +25,29 @@ contract RealmToken is ERC20, ERC20Burnable, Ownable {
     /// @notice 1 ano em segundos
     uint256 public constant ONE_YEAR = 365 days;
 
-    /// @notice Enderecos autorizados a mintar (game server, exchange contract)
+    /// @notice Intervalo minimo entre inflacoes: 30 dias
+    uint256 public constant MIN_INFLATION_INTERVAL = 30 days;
+
+    /// @notice Maximo de minters permitidos
+    uint256 public constant MAX_MINTERS = 10;
+
+    /// @notice Limite diario de mint por minter (tokens)
+    uint256 public constant DAILY_MINT_LIMIT = 1_000_000 * 1e18; // 1M REALM/dia
+
+    /// @notice Enderecos autorizados a mintar
     mapping(address => bool) public minters;
+
+    /// @notice Controle de mint diario por minter
+    mapping(address => uint256) public minterDailyMinted;
+    mapping(address => uint256) public minterLastMintDay;
+
+    /// @notice Contador de minters ativos
+    uint256 public minterCount;
 
     event MinterAdded(address indexed minter);
     event MinterRemoved(address indexed minter);
     event MaxSupplyIncreased(uint256 oldMax, uint256 newMax);
+    event TokensMinted(address indexed minter, address indexed to, uint256 amount);
 
     /**
      * @notice Deploy do token com mint inicial para treasury
@@ -39,6 +57,7 @@ contract RealmToken is ERC20, ERC20Burnable, Ownable {
         maxSupply = 1_000_000_000 * 1e18;          // 1B REALM
         lastInflationTime = block.timestamp;
         minters[msg.sender] = true;
+        minterCount = 1;
 
         // Mint inicial: 100M para treasury (deployer)
         _mint(msg.sender, 100_000_000 * 1e18);
@@ -51,25 +70,43 @@ contract RealmToken is ERC20, ERC20Burnable, Ownable {
 
     // ─── Minter Management ─────────────────────────────────────
 
-    /// @notice Adiciona um endereco como minter autorizado
+    /// @notice Adiciona um endereco como minter autorizado (max 10)
     function addMinter(address _minter) external onlyOwner {
         require(_minter != address(0), "RealmToken: endereco zero");
+        require(!minters[_minter], "RealmToken: ja eh minter");
+        require(minterCount < MAX_MINTERS, "RealmToken: limite de minters atingido");
         minters[_minter] = true;
+        minterCount++;
         emit MinterAdded(_minter);
     }
 
     /// @notice Remove um minter autorizado
     function removeMinter(address _minter) external onlyOwner {
+        require(_minter != address(0), "RealmToken: endereco zero");
+        require(minters[_minter], "RealmToken: nao eh minter");
         minters[_minter] = false;
+        minterCount--;
         emit MinterRemoved(_minter);
     }
 
     // ─── Minting ───────────────────────────────────────────────
 
-    /// @notice Minta tokens para um endereco (respeitando o maxSupply)
+    /// @notice Minta tokens para um endereco (respeitando maxSupply + limite diario)
     function mint(address to, uint256 amount) external onlyMinter {
+        require(to != address(0), "RealmToken: to zero");
         require(totalSupply() + amount <= maxSupply, "RealmToken: excede maxSupply");
+
+        // Rate limiting: max 1M REALM por minter por dia
+        uint256 today = block.timestamp / 1 days;
+        if (minterLastMintDay[msg.sender] != today) {
+            minterDailyMinted[msg.sender] = 0;
+            minterLastMintDay[msg.sender] = today;
+        }
+        minterDailyMinted[msg.sender] += amount;
+        require(minterDailyMinted[msg.sender] <= DAILY_MINT_LIMIT, "RealmToken: limite diario excedido");
+
         _mint(to, amount);
+        emit TokensMinted(msg.sender, to, amount);
     }
 
     // ─── Inflacao Controlada ───────────────────────────────────
@@ -78,14 +115,14 @@ contract RealmToken is ERC20, ERC20Burnable, Ownable {
      * @notice Aumenta o maxSupply (inflacao controlada para staking/DAO)
      * @param newMaxSupply Novo valor de maxSupply
      * @dev Maximo de 5% ao ano, proporcional ao tempo desde ultima inflacao.
-     *      Exemplo: se passou 6 meses, pode aumentar ate 2.5%.
+     *      Intervalo minimo de 30 dias entre inflacoes.
      */
     function increaseMaxSupply(uint256 newMaxSupply) external onlyOwner {
         require(newMaxSupply > maxSupply, "RealmToken: novo max deve ser maior");
 
-        // Calcula inflacao maxima permitida proporcional ao tempo
+        // Intervalo minimo de 30 dias
         uint256 elapsed = block.timestamp - lastInflationTime;
-        require(elapsed > 0, "RealmToken: muito cedo para inflacao");
+        require(elapsed >= MIN_INFLATION_INTERVAL, "RealmToken: minimo 30 dias entre inflacoes");
 
         // maxIncrease = maxSupply * 5% * (elapsed / 1 year)
         uint256 maxIncrease = (maxSupply * MAX_INFLATION_BPS * elapsed) / (10_000 * ONE_YEAR);
@@ -109,7 +146,15 @@ contract RealmToken is ERC20, ERC20Burnable, Ownable {
     /// @notice Retorna a inflacao maxima permitida agora (em tokens)
     function currentMaxInflation() external view returns (uint256) {
         uint256 elapsed = block.timestamp - lastInflationTime;
-        if (elapsed == 0) return 0;
+        if (elapsed < MIN_INFLATION_INTERVAL) return 0;
         return (maxSupply * MAX_INFLATION_BPS * elapsed) / (10_000 * ONE_YEAR);
+    }
+
+    /// @notice Retorna quanto um minter ainda pode mintar hoje
+    function dailyMintRemaining(address _minter) external view returns (uint256) {
+        uint256 today = block.timestamp / 1 days;
+        if (minterLastMintDay[_minter] != today) return DAILY_MINT_LIMIT;
+        if (minterDailyMinted[_minter] >= DAILY_MINT_LIMIT) return 0;
+        return DAILY_MINT_LIMIT - minterDailyMinted[_minter];
     }
 }

@@ -5,17 +5,22 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title MegaRealms Character
+ * @title MegaRealms Character v2
  * @notice NFT ERC-721 representando o personagem do jogador
- * @dev Cada jogador minta 1 NFT que armazena seus stats on-chain
+ * @dev v2: saveProgress validations, stat limits, save cooldown, gold cap.
  *      Na Base L2, salvar estado e barato e rapido (2s blocks)
  */
 contract GameCharacter is ERC721, Ownable {
     uint256 public nextCharId = 1;
 
+    uint256 public constant MAX_LEVEL = 500;
+    uint256 public constant MAX_GOLD = 99_999_999;
+    uint256 public constant MAX_STAT = 10_000;
+    uint256 public constant SAVE_COOLDOWN = 60; // 60 segundos entre saves
+
     struct CharacterData {
         string name;
-        string vocation; // knight, paladin, sorcerer, druid
+        string vocation;
         uint256 level;
         uint256 xp;
         uint256 hp;
@@ -30,21 +35,35 @@ contract GameCharacter is ERC721, Ownable {
     }
 
     mapping(uint256 => CharacterData) public characters;
-    mapping(address => uint256) public playerCharacter; // 1 char per wallet
+    mapping(address => uint256) public playerCharacter;
+
+    /// @notice Enderecos autorizados a salvar em nome do jogador (game server)
+    mapping(address => bool) public authorizedSavers;
 
     event CharacterMinted(address indexed player, uint256 indexed charId, string name, string vocation);
-    event CharacterSaved(uint256 indexed charId, uint256 level, uint256 xp);
+    event CharacterSaved(uint256 indexed charId, uint256 level, uint256 xp, uint256 gold);
 
-    constructor() ERC721("MegaRealms Character", "MRCHAR") Ownable(msg.sender) {}
+    constructor() ERC721("MegaRealms Character", "MRCHAR") Ownable(msg.sender) {
+        authorizedSavers[msg.sender] = true;
+    }
+
+    /// @notice Adiciona endereco autorizado a salvar (game server)
+    function addSaver(address _saver) external onlyOwner {
+        authorizedSavers[_saver] = true;
+    }
+
+    /// @notice Remove endereco autorizado
+    function removeSaver(address _saver) external onlyOwner {
+        authorizedSavers[_saver] = false;
+    }
 
     /// @notice Cria um personagem (1 por wallet)
     function mintCharacter(string calldata name, string calldata vocation) external returns (uint256) {
         require(playerCharacter[msg.sender] == 0, "Ja possui um personagem");
         require(bytes(name).length > 0 && bytes(name).length <= 16, "Nome invalido");
+        require(_isValidVocation(vocation), "Vocacao invalida");
 
         uint256 charId = nextCharId++;
-
-        // Stats iniciais baseados na vocacao
         (uint256 hp, uint256 mp, uint256 atk, uint256 def) = _getBaseStats(vocation);
 
         characters[charId] = CharacterData({
@@ -58,7 +77,7 @@ contract GameCharacter is ERC721, Ownable {
             maxMp: mp,
             atk: atk,
             def: def,
-            gold: 100,
+            gold: 150,
             createdAt: block.timestamp,
             lastSaved: block.timestamp
         });
@@ -70,7 +89,7 @@ contract GameCharacter is ERC721, Ownable {
         return charId;
     }
 
-    /// @notice Salva o progresso do personagem on-chain
+    /// @notice Salva o progresso (dono ou game server autorizado)
     function saveProgress(
         uint256 charId,
         uint256 level,
@@ -83,8 +102,25 @@ contract GameCharacter is ERC721, Ownable {
         uint256 def,
         uint256 gold
     ) external {
-        require(ownerOf(charId) == msg.sender, "Nao eh o dono");
+        // Autorização: dono do NFT ou game server autorizado
+        require(
+            ownerOf(charId) == msg.sender || authorizedSavers[msg.sender],
+            "Nao autorizado"
+        );
+
         CharacterData storage c = characters[charId];
+
+        // Cooldown entre saves
+        require(block.timestamp >= c.lastSaved + SAVE_COOLDOWN, "Cooldown de save");
+
+        // Validacoes de limites
+        require(level >= 1 && level <= MAX_LEVEL, "Level invalido");
+        require(level >= c.level, "Level nao pode diminuir");
+        require(hp <= maxHp && maxHp <= MAX_STAT, "HP invalido");
+        require(mp <= maxMp && maxMp <= MAX_STAT, "MP invalido");
+        require(atk <= MAX_STAT && def <= MAX_STAT, "Stat invalido");
+        require(gold <= MAX_GOLD, "Gold excede maximo");
+
         c.level = level;
         c.xp = xp;
         c.hp = hp;
@@ -96,17 +132,23 @@ contract GameCharacter is ERC721, Ownable {
         c.gold = gold;
         c.lastSaved = block.timestamp;
 
-        emit CharacterSaved(charId, level, xp);
+        emit CharacterSaved(charId, level, xp, gold);
     }
 
-    /// @notice Retorna os dados completos do personagem
     function getCharacter(uint256 charId) external view returns (CharacterData memory) {
+        require(charId > 0 && charId < nextCharId, "Character nao existe");
         return characters[charId];
     }
 
-    /// @notice Retorna o charId do jogador
     function getPlayerCharId(address player) external view returns (uint256) {
         return playerCharacter[player];
+    }
+
+    /// @notice Valida vocacao
+    function _isValidVocation(string calldata vocation) internal pure returns (bool) {
+        bytes32 voc = keccak256(bytes(vocation));
+        return (voc == keccak256("knight") || voc == keccak256("paladin") ||
+                voc == keccak256("sorcerer") || voc == keccak256("druid"));
     }
 
     /// @notice Stats iniciais por vocacao

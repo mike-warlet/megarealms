@@ -1,0 +1,19 @@
+{
+  "name": "megarealms",
+  "version": "1.0.0",
+  "description": "MegaRealms - On-Chain MMORPG on Base (inspired by Tibia)",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy": "npx hardhat run scripts/deploy.js --network base",
+    "deploy:local": "npx hardhat run scripts/deploy.js --network localhost",
+    "node": "npx hardhat node"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.22.0"
+  }
+}

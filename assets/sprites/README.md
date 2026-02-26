@@ -56,14 +56,26 @@ See [DESIGN_GUIDE.md](../../DESIGN_GUIDE.md) for full specifications:
 - Earthy muted color palette
 - Tibia 7.x aesthetic
 
+## Improvement Method
+
+**Local Processing (Python + Pillow):**
+- ✅ Quantize to Tibia color palette (6-8 colors max)
+- ✅ Enhance sharpness (2.0x)
+- ✅ Add 1px black outlines
+- ✅ Nearest-neighbor resize (preserves pixel art)
+- ✅ No anti-aliasing
+
+**Script:** `improve_sprites.py` (run with `uv run --with pillow --with numpy improve_sprites.py`)
+
 ## Status
 
 - ✅ Original sprites extracted (14 monsters)
-- ✅ Design guide created
-- ⏳ Improved sprites generation (pending API quota)
-- ⏳ Tile improvements
-- ⏳ Integration into index.html
+- ✅ Design guide created (DESIGN_GUIDE.md)
+- ✅ Improved monster sprites (14/14) — local processing
+- ✅ Improved tiles (8/8) — grass, dirt, water, stone_wall, sand, cave_floor, ice, lava
+- ⏳ Integration into index.html (next step)
+- 🔄 Future: AI-enhanced versions when Gemini quota resets
 
 ---
 
-**Last updated:** 2026-02-26
+**Last updated:** 2026-02-26 10:20 GMT-3

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MegaRealms Sprite Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #ccc; }
+        h1 { color: #f0c040; }
+        .sprite-test { margin: 20px 0; padding: 10px; background: #2a2a3a; border: 1px solid #f0c040; }
+        .sprite-img { border: 2px solid #4f4; margin: 10px; }
+        .status { padding: 5px; margin: 5px 0; }
+        .loading { color: #fa3; }
+        .loaded { color: #4f4; }
+        .error { color: #f44; }
+    </style>
+</head>
+<body>
+    <h1>🎮 MegaRealms Sprite Loading Test</h1>
+    <p>Testing AI-enhanced sprite loading from index.html...</p>
+    
+    <div id="results"></div>
+    
+    <script>
+        const monsters = [
+            { name: 'rat', var: '_ratI' },
+            { name: 'skeleton', var: '_sklI' },
+            { name: 'dragon', var: '_drgI' },
+            { name: 'troll', var: '_trlI' },
+            { name: 'spider', var: '_pspI' }
+        ];
+        
+        const resultsDiv = document.getElementById('results');
+        
+        // Load the actual index.html to extract sprites
+        fetch('index.html')
+            .then(response => response.text())
+            .then(html => {
+                monsters.forEach(monster => {
+                    const div = document.createElement('div');
+                    div.className = 'sprite-test';
+                    div.innerHTML = `<h3>${monster.name.toUpperCase()}</h3>`;
+                    
+                    // Extract base64 data from HTML
+                    const pattern = new RegExp(`window\\.${monster.var}\\.src='(data:image/png;base64,[^']+)'`);
+                    const match = html.match(pattern);
+                    
+                    if (match) {
+                        const base64 = match[1];
+                        const size = Math.round(base64.length / 1024);
+                        
+                        const status = document.createElement('div');
+                        status.className = 'status loading';
+                        status.textContent = `📦 Sprite found! Size: ${size} KB (base64)`;
+                        div.appendChild(status);
+                        
+                        // Create image element
+                        const img = new Image();
+                        const loadStart = Date.now();
+                        
+                        img.onload = function() {
+                            const loadTime = Date.now() - loadStart;
+                            status.className = 'status loaded';
+                            status.textContent = `✅ Loaded successfully! Size: ${size} KB | Time: ${loadTime}ms | ${img.width}x${img.height}px`;
+                            img.className = 'sprite-img';
+                            img.style.width = '128px';
+                            img.style.height = '128px';
+                            img.style.imageRendering = 'pixelated';
+                            div.appendChild(img);
+                        };
+                        
+                        img.onerror = function() {
+                            status.className = 'status error';
+                            status.textContent = `❌ Failed to load! Check browser console for errors.`;
+                        };
+                        
+                        img.src = base64;
+                    } else {
+                        const status = document.createElement('div');
+                        status.className = 'status error';
+                        status.textContent = `❌ Sprite not found in HTML!`;
+                        div.appendChild(status);
+                    }
+                    
+                    resultsDiv.appendChild(div);
+                });
+            })
+            .catch(error => {
+                resultsDiv.innerHTML = `<div class="status error">❌ Failed to load index.html: ${error}</div>`;
+            });
+    </script>
+</body>
+</html>
